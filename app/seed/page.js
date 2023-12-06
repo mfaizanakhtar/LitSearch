@@ -37,7 +37,7 @@ const page = () => {
 
         const queryParams = new URLSearchParams(searchParams);
     
-        axios.get(`/api/semanticAuthor/relevanceSearch?${queryParams}`)
+        axios.get(`/api/semanticScholar/relevanceSearch?${queryParams}`)
         .then((data)=>{
             console.log(data)
             setRelevantSearchLoading(false)
@@ -93,6 +93,9 @@ const page = () => {
                         titleKey="title"
                         descKey="publicationConcat"
                     />
+                </div>
+                <div className="flex justify-end w-full">
+                    <ButtonPrimary disabled={true} btnText={"Generate Seed"}></ButtonPrimary>
                 </div>
         </Modal>
     </SidebarLayout>

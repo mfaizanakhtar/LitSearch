@@ -33,6 +33,4 @@ export const GET=async(request:NextRequest)=>{
     } catch (error) {
         return NextResponse.json(error,{status:500})
     }
-
-    // return NextResponse.json({response:"error occured"},{status:500})
 }
