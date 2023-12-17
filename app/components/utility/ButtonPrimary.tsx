@@ -1,7 +1,7 @@
 'use client'
 import React from 'react'
 
-const ButtonPrimary = ({clickEvent,btnText,disabled}) => {
+const ButtonPrimary = ({clickEvent=null,btnText=null,disabled=null}) => {
   return (
     <button
         type="button"

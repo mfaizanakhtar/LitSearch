@@ -8,8 +8,10 @@ import MagGlassIcon from '../components/utility/MagGlassIcon';
 import ButtonPrimary from '../components/utility/ButtonPrimary';
 import CardLists from '../components/utility/CardLists';
 import axios from 'axios';
+import { useRouter } from 'next/navigation'
 
 const page = () => {
+    const router = useRouter()
     const [showModal, setShowModal] = useState(false);
     const openModal = () => {
         setShowModal(true);
@@ -19,25 +21,34 @@ const page = () => {
     const [inputText, setInputText] = useState('');
     const [relevanceResults, setRelevanceResults] = useState([]);
     const [relevantSearchLoading,setRelevantSearchLoading] = useState(false)    
+    const [selectedCard,setSelectedCard] = useState(false)
+
+    const handleGenerateSeedClick=()=>{
+        router.push(`/seed/${selectedCard}`)
+    }
+
+    const handleCardClick = (cardValue)=>{
+        console.log("Setting Card Value as " + cardValue)
+        setSelectedCard(cardValue)
+    }
 
     const handleInputChange = (e) => {
         setInputText(e.target.value);
     };
 
     const handleSearch = () => {
+        setSelectedCard(null)
         setRelevanceResults([])
         setRelevantSearchLoading(true)
 
         let searchParams = {
             searchQuery: inputText,
-            fields: "title,publicationDate,journal",
             offset:0,
-            limit:20
           };
 
-        const queryParams = new URLSearchParams(searchParams);
+          const queryParams = new URLSearchParams(Object.entries(searchParams).map(([key, value]) => [key, String(value)]));
     
-        axios.get(`/api/semanticScholar/relevanceSearch?${queryParams}`)
+        axios.get(`/api/relevancesearch?${queryParams}`)
         .then((data)=>{
             console.log(data)
             setRelevantSearchLoading(false)
@@ -68,7 +79,6 @@ const page = () => {
                 <div className='flex-grow'>
                     <div className="relative">
                         <TextInput
-                            type="text"
                             name="search"
                             id="search"
                             value={inputText}
@@ -92,10 +102,13 @@ const page = () => {
                         list={relevanceResults}
                         titleKey="title"
                         descKey="publicationConcat"
+                        selectedCardId={selectedCard}
+                        cardClick={handleCardClick}
+                        clickPassingValue="paperId"
                     />
                 </div>
                 <div className="flex justify-end w-full">
-                    <ButtonPrimary disabled={true} btnText={"Generate Seed"}></ButtonPrimary>
+                    <ButtonPrimary clickEvent={handleGenerateSeedClick} disabled={selectedCard ? false : true} btnText={"Generate Seed"}></ButtonPrimary>
                 </div>
         </Modal>
     </SidebarLayout>

@@ -1,7 +1,7 @@
 'use client'
 import React from 'react'
 
-const TextInput = ({name,id,placeholder,value,onChange,style,className}) => {
+const TextInput = ({name,id,placeholder,value=undefined,onChange=undefined,style=undefined,className=undefined}) => {
   return (
     <input
         style={style}

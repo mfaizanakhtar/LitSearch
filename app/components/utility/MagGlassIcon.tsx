@@ -1,7 +1,7 @@
 import React from 'react'
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 
-const MagGlassIcon = ({className}) => {
+const MagGlassIcon = ({className=null}) => {
   return (
     <MagnifyingGlassIcon
         className={"h-5 w-5 text-gray-400"+" "+className}
