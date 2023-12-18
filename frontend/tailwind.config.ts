@@ -1,7 +1,6 @@
-/** @type {import('tailwindcss').Config} */
-const colors = require('tailwindcss/colors');
+import type { Config } from 'tailwindcss'
 
-module.exports = {
+const config: Config = {
   content: [
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -14,13 +13,10 @@ module.exports = {
         'gradient-conic':
           'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
       },
-      colors:{
-        'primary':colors.indigo[600],
-        'primaryLight':colors.indigo[300]
-      }
     },
   },
   plugins: [
-    require('@tailwindcss/forms')
+    require('@tailwindcss/forms'),
   ],
 }
+export default config
