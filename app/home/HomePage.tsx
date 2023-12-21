@@ -10,7 +10,7 @@ import CardLists from '../components/utility/CardLists';
 import axios from 'axios';
 import { useRouter } from 'next/navigation'
 
-const page = () => {
+const HomePage = () => {
     const router = useRouter()
     const [showModal, setShowModal] = useState(false);
     const openModal = () => {
@@ -115,4 +115,4 @@ const page = () => {
   )
 }
 
-export default page
+export default HomePage

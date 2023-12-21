@@ -1,3 +1,4 @@
+'use client'
 import React, { Fragment, useState, useEffect } from 'react';
 import { Combobox, Dialog, Transition } from '@headlessui/react';
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
@@ -7,6 +8,7 @@ import { FaceFrownIcon, GlobeAmericasIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import getState from '../state';
+import { useSession } from 'next-auth/react';
 
 const items = [
     { id: 1, name: 'Workflow Inc.', category: 'Clients', url: '#' },
@@ -17,7 +19,7 @@ function classNames(...classes: string[]) {
     return classes.filter(Boolean).join(' ')
 }
 
-export default function Search() {
+export default function Search({setIsLoading}:any) {
     const router = useRouter();
     const addPapers = getState((state) => state.add);
     const [query, setQuery] = useState('');
@@ -26,7 +28,11 @@ export default function Search() {
     const openModal = () => setShowModal(true);
     const closeModal = () => setShowModal(false);
 
-    const handleKeyDown = (event) => {
+    const {data : session}:any = useSession({
+        required:true
+      })
+
+    const handleKeyDown = (event:any) => {
         if (event.key === 'Enter') {
             setQuery(event.target.value);
             console.log(query);
@@ -35,25 +41,23 @@ export default function Search() {
         }
     }
 
-    const handleChange = (event) => setQuery(event.target.value)
+    const handleChange = (event:any) => setQuery(event.target.value)
 
     const handleSearch = () => {
-        let searchParams = {
-            searchQuery: query,
-            offset:0,
-          };
-
-        const queryParams = new URLSearchParams(Object.entries(searchParams).map(([key, value]) => [key, String(value)]));
-
-        axios.get(`/api/relevancesearch?${queryParams}`)
+        setIsLoading(true)
+        axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/search`,{
+            query:query,
+            userId: session?.user?.id
+        })
         .then((data)=>{
+            setIsLoading(false)
             console.log(data)
-            addPapers(data.data.map((obj) => {
+            addPapers(data.data.map((obj:any) => {
                 return { pid: obj.paperId, title: obj.title };
             })); // Update your state with the response data
         })
         .catch(error=>{
-
+            console.log(error)
         })
     };
 
@@ -64,7 +68,7 @@ export default function Search() {
                 return item.name.toLowerCase().includes(query.toLowerCase())
             })
 
-    const groups = filteredItems.reduce((groups, item) => {
+    const groups = filteredItems.reduce((groups:any, item) => {
         return { ...groups, [item.category]: [...(groups[item.category] || []), item] }
     }, {})
 
@@ -113,7 +117,7 @@ export default function Search() {
                         leaveTo="opacity-0 scale-95"
                     >
                         <Dialog.Panel className="mx-auto max-w-xl transform overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black ring-opacity-5 transition-all">
-                            <Combobox onChange={(item) => (window.location = item.url)}>
+                            <Combobox onChange={(item:any) => (window.location = item.url)}>
                                 <div className="relative">
                                     <MagnifyingGlassIcon
                                         className="pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-gray-400"
@@ -139,15 +143,15 @@ export default function Search() {
 
                                 {filteredItems.length > 0 && (
                                     <Combobox.Options static className="max-h-80 scroll-pb-2 scroll-pt-11 space-y-2 overflow-y-auto pb-2">
-                                        {Object.entries(groups).map(([category, items]) => (
+                                        {Object.entries(groups).map(([category, items]:[any,any]) => (
                                             <li key={category}>
                                                 <h2 className="bg-gray-100 px-4 py-2.5 text-xs font-semibold text-gray-900">{category}</h2>
                                                 <ul className="mt-2 text-sm text-gray-800">
-                                                    {items.map((item) => (
+                                                    {items.map((item:any) => (
                                                         <Combobox.Option
                                                             key={item.id}
                                                             value={item}
-                                                            className={({ active }) =>
+                                                            className={({ active }:any) =>
                                                                 classNames('cursor-default select-none px-4 py-2', active && 'bg-indigo-600 text-white')
                                                             }
                                                         >

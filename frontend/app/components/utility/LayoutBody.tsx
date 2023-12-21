@@ -14,7 +14,7 @@ const userNavigation = [
     { name: 'Sign out', href: '#' },
   ]
 
-const MainLayoutPart = ({children}) => {
+const MainLayoutPart = ({children}:any) => {
   return (
     <div className="lg:pl-52">
     <div className="sticky top-0 z-40 lg:mx-auto lg:max-w-7xl lg:px-8">
