@@ -8,6 +8,7 @@ import { useSession } from "next-auth/react";
 import { useEffect,useState } from 'react'
 import axios from "axios";
 import Loader from "./utility/Loader";
+import VegaGraph from "./Graph/VegaGraph";
 
 export default function HomePage() {
   const papers = getState((state) => state.papers);
@@ -29,7 +30,8 @@ export default function HomePage() {
     axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/userPaperHistory?userId=${session?.user?.id}`)
     .then(({data})=>{
       addPapers(data.map((obj:any) => {
-        return { pid: obj.paperId, title: obj.title, paperEvents:obj.paperEvents };
+        return { pid: obj.paperId, title: obj.title, paperEvents:obj.paperEvents , publicationDate : obj.publicationDate,
+            citationCount:obj.citationCount,referenceCount:obj.referenceCount};
       })); // Update your state with the response data
       setIsLoading(false)
     })
@@ -54,7 +56,8 @@ export default function HomePage() {
     </main>
 
     <aside className="fixed inset-y-0 right-0 w-2/3 flex flex-col">
-      <Mock />
+      {/* <Mock /> */}
+      <VegaGraph></VegaGraph>
     </aside>
     </>
   )

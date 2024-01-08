@@ -53,7 +53,7 @@ export default function Search({setIsLoading}:any) {
             setIsLoading(false)
             console.log(data)
             addPapers(data.data.map((obj:any) => {
-                return { pid: obj.paperId, title: obj.title };
+                return { pid: obj.paperId, title: obj.title, referenceCount: obj.referenceCount, publicationDate: obj.publicationDate };
             })); // Update your state with the response data
         })
         .catch(error=>{

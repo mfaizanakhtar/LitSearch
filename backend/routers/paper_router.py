@@ -12,7 +12,7 @@ import os
 
 router = APIRouter()
 SEMANTIC_SCHOLAR_BASEURL="https://api.semanticscholar.org/graph/v1/paper"
-FIELDS="title,publicationDate,journal"
+FIELDS="title,publicationDate,journal,referenceCount,citationCount"
 LIMIT=20
 OFFSET=0
 
@@ -21,6 +21,8 @@ def transform_json(input_json):
         "paperId": input_json["paperId"],
         "title": input_json["title"],
         "publicationDate": input_json["publicationDate"],
+        "referenceCount":input_json["referenceCount"],
+        "citationCount":input_json["citationCount"],
         "journalName": input_json["journal"]["name"] if input_json.get("journal") is not None and input_json.get("journal").get("name") is not None else None
     }
 

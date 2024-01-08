@@ -1,6 +1,9 @@
 export interface Paper {
     pid: string;
     title: string;
+    citationCount:number,
+    referenceCount:number,
+    publicationDate:string,
     index?:number
     paperEvents: PaperEvents;
 }
