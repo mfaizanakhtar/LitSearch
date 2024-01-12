@@ -17,6 +17,7 @@ const config: Config = {
       },
       colors: {
         primary: colors.indigo[600], // This is the value for indigo-600
+        primaryLight: colors.indigo[100], // This is the value for indigo-600
       }
     },
   },

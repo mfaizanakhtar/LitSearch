@@ -4,7 +4,6 @@ import { HandThumbUpIcon as HandThumbUpIconOutline} from '@heroicons/react/24/ou
 
 
 const ThumbUpIcon = ({iconStatus=false,clickEvent}:any) => {
-  console.log("IconStatus :" + iconStatus)
   return (
     <>
     {iconStatus ? 

@@ -1,10 +1,12 @@
 export interface Paper {
-    pid: string;
+    paperId: string;
     title: string;
     citationCount:number,
     referenceCount:number,
     publicationDate:string,
-    index?:number
+    journalName:string,
+    venue:string,
+    index?:number,
     paperEvents: PaperEvents;
 }
 

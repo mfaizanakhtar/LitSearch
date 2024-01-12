@@ -12,6 +12,10 @@ class SearchBody(BaseModel):
     query: str
     userId: str
 
+class RefCitationBody(BaseModel):
+    paperId: str
+    userId: str
+
 class Event(BaseModel):
     positive:bool=False
     negative:bool=False

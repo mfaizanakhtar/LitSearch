@@ -49,12 +49,10 @@ export default function Search({setIsLoading}:any) {
             query:query,
             userId: session?.user?.id
         })
-        .then((data)=>{
+        .then((response)=>{
             setIsLoading(false)
-            console.log(data)
-            addPapers(data.data.map((obj:any) => {
-                return { pid: obj.paperId, title: obj.title, referenceCount: obj.referenceCount, publicationDate: obj.publicationDate };
-            })); // Update your state with the response data
+            const formattedPapers = response.data.map((paper:any)=>{return {...paper,journalName:paper.journal.name}})
+            addPapers(formattedPapers); // Update your state with the response data
         })
         .catch(error=>{
             console.log(error)

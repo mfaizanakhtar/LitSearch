@@ -9,10 +9,13 @@ import { useEffect,useState } from 'react'
 import axios from "axios";
 import Loader from "./utility/Loader";
 import VegaGraph from "./Graph/VegaGraph";
+import PaperDetails from "./PaperDetails";
+import ScrollToTop from "./utility/ScrollToTop";
 
 export default function HomePage() {
   const papers = getState((state) => state.papers);
   const addPapers = getState((state) => state.add);
+  const detailView = getState((state)=>state.detailView)
   const [isLoading,setIsLoading]=useState(true)
   const [userId, setUserId] = useState(null);
   const {data : session}:any = useSession({
@@ -29,10 +32,7 @@ export default function HomePage() {
   useEffect(()=>{
     axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/userPaperHistory?userId=${session?.user?.id}`)
     .then(({data})=>{
-      addPapers(data.map((obj:any) => {
-        return { pid: obj.paperId, title: obj.title, paperEvents:obj.paperEvents , publicationDate : obj.publicationDate,
-            citationCount:obj.citationCount,referenceCount:obj.referenceCount};
-      })); // Update your state with the response data
+      addPapers(data); // Update your state with the response data
       setIsLoading(false)
     })
     .catch(error=>{
@@ -49,7 +49,7 @@ export default function HomePage() {
       {isLoading ? <Loader/> : <></>}
       <ul role="list" className="mt-6 space-y-3 mt-6 px-4 sm:px-6 lg:px-8">
         {papers.map((paper,index) => (
-          <Card key={paper.pid} index={index} {... paper}  />
+          <Card key={paper.paperId} index={index}  {...paper}  />
         ))}
       </ul>
       <Mock />
@@ -57,8 +57,9 @@ export default function HomePage() {
 
     <aside className="fixed inset-y-0 right-0 w-2/3 flex flex-col">
       {/* <Mock /> */}
-      <VegaGraph></VegaGraph>
+      {detailView ? <PaperDetails /> : <div className="fade-in"><VegaGraph /></div>}
     </aside>
+    <ScrollToTop></ScrollToTop>
     </>
   )
 }

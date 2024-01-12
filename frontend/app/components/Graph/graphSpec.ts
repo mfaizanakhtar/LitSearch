@@ -25,6 +25,7 @@ export const createSpec=(data:any)=>{
         "width": 800,
         "height": 700,
         "padding": 20,
+        
         "data": data,
         "scales": [
           {
