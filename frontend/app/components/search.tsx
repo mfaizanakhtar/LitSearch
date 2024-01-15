@@ -9,6 +9,7 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import getState from '../state';
 import { useSession } from 'next-auth/react';
+import { None } from 'vega';
 
 const items = [
     { id: 1, name: 'Workflow Inc.', category: 'Clients', url: '#' },
@@ -51,7 +52,7 @@ export default function Search({setIsLoading}:any) {
         })
         .then((response)=>{
             setIsLoading(false)
-            const formattedPapers = response.data.map((paper:any)=>{return {...paper,journalName:paper.journal.name}})
+            const formattedPapers = response.data.map((paper:any)=>{return {...paper,journalName: paper.jornal ? paper.journal.name : undefined}})
             addPapers(formattedPapers); // Update your state with the response data
         })
         .catch(error=>{

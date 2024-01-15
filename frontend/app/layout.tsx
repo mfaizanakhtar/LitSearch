@@ -19,10 +19,9 @@ export default function RootLayout({
     <html className="h-full bg-white" lang="en">
       <body className={inter.className.concat(" h-full")}>
         <AuthProvider>
-        {children}
+          {children}
         </AuthProvider>
-        </body>
-        
+      </body>
     </html>
   )
 }

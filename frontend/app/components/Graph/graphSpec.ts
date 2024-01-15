@@ -53,7 +53,7 @@ export const createSpec=(data:any)=>{
             "from": {"data": "publications"},
             "encode": {
               "enter": {
-                "x": {"scale": "x", "field": "year"},
+                "x": {"scale": "x", "field": "year", "sort": "ascending"},
                 "y": {"scale": "y", "field": "citations"},
                 "size": {"value": 100},
                 "fill": {"value": "#4F46E5"},
