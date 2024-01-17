@@ -38,9 +38,9 @@ const PaperDetails = () => {
         <InfoCardSmall 
             key={paper.paperId}
             title={paper.title}
-            breadCrumb={`${paper.publicationDate}, ${paper.journalName}`}
+            breadCrumb={`${paper.publicationDate ? paper.publicationDate : ''} ${paper.publicationDate && paper.journalName ? ',' : ''} ${paper.journalName ? paper.journalName : ''}`}
             description={paper.abstract}
-            footerLeft={`Citations: ${paper.citationCount} References: ${paper.referenceCount}`}
+            footerLeft={`${paper.citationCount ? 'Citations: '+paper.citationCount :''} ${paper.referenceCount ? 'References: '+paper.referenceCount : ''}`}
             footerRight={paper.venue}
         />
         {/* <InfoCardLarge></InfoCardLarge> */}

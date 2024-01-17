@@ -13,9 +13,10 @@ import { useState } from 'react';
 export default function Card(paper: Paper) {
 
     const updatePaper = getState((state) => state.updatePaper);
-    const add  = getState((state) => state.add);
     const isDetailView = getState((state)=>state.isDetailView)
     const setDetailPagePaper = getState((state)=>state.setDetailPagePaper)
+    const addPapersToCurrentQuery = getState((state)=>state.addPapersToCurrentQuery)
+    const currentSearchQuery = getState((state)=>state.currentSearchQuery)
     const [isLoadingRelevant,setIsLoadingRelevant]=useState(false)
     const [relevantLoadedSize,setRelevantLoadedSize]=useState(0)
     const [isRemoved,setIsRemoved]=useState(false)
@@ -40,14 +41,19 @@ export default function Card(paper: Paper) {
         }
         eventObj.paperId=paper.paperId
         eventObj.userId=session.user.id
-        updatePaper(paper?.index,{
+        updatePaper(paper?.arrayIndex,{
             paperEvents:eventObj
         })
-        const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/event`,eventObj)
-        add(response.data.relevantPapers)
+        let requestBody:any={}
+        requestBody.event = eventObj
+        requestBody.currentSearchQuery=currentSearchQuery
+        let response:any = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/event`,requestBody)
+        response.data.relevantPapers = response?.data?.relevantPapers?.map((paper:any)=>({...paper,journalName:paper.journal?.name}))
+        console.log(response)
+        console.log("printing response")
+        addPapersToCurrentQuery(response.data.relevantPapers)
         setIsLoadingRelevant(false)
         setRelevantLoadedSize(response.data.relevantPapers.length)
-        console.log(response)
     };
 
     const handleThumbDownClick = async () => {
@@ -61,18 +67,22 @@ export default function Card(paper: Paper) {
         eventObj.userId=session.user.id
         setIsRemoved(true)
         setTimeout(() => {
-            updatePaper(paper?.index,{
+            updatePaper(paper?.arrayIndex,{
                 paperEvents:eventObj
             })
             setIsRemoved(false)
         }, 500);
 
-        const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/event`,eventObj)
+        let requestBody:any={}
+        requestBody.event = eventObj
+        requestBody.currentSearchQuery=currentSearchQuery
+
+        const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/event`,requestBody)
         console.log(response)
     };
     return <>
-        <li className={`overflow-hidden rounded-md shadow mb-3 relative flex justify-between gap-y-6 ${isRemoved ? 'fade-out' : 'fade-in'}`}>
-        <div className="flex min-w-0 gap-x-4 p-4 transform hover:scale-105 transition-transform">
+        <li className={`overflow-hidden rounded-md shadow mb-3 relative flex justify-between gap-y-6 ${isRemoved ? 'fade-out' : 'fade-in'} transform hover:scale-105 transition-transform`}>
+        <div className="flex min-w-0 gap-x-4 p-4">
             {/* <img className="h-12 w-12 flex-none rounded-full bg-gray-50" src={person.imageUrl} alt="" /> */}
             <div className="min-w-0 flex-auto">
             <p onClick={detailViewclick} className="text-sm font-semibold leading-6 text-gray-900 hover:underline hover:cursor-pointer">

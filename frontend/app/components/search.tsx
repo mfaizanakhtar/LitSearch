@@ -12,7 +12,7 @@ import { useSession } from 'next-auth/react';
 import { None } from 'vega';
 
 const items = [
-    { id: 1, name: 'Workflow Inc.', category: 'Clients', url: '#' },
+    { id: 1, searchQuery:'covid', name: 'Workflow Inc.', category: 'Clients', url: '#' },
     // More items...
 ]
 
@@ -21,8 +21,14 @@ function classNames(...classes: string[]) {
 }
 
 export default function Search({setIsLoading}:any) {
-    const router = useRouter();
-    const addPapers = getState((state) => state.add);
+    const setPapersQueries = getState((state) => state.setPaperQueries);
+    const addNewQueryToSearchQryList = getState((state) => state.addNewQueryToSearchQryList);
+    const currentSearchQuery = getState((state)=>state.currentSearchQuery)
+    const searchQueries = getState((state)=>state.searchQueries)
+    const moveQueryUpwards = getState((state)=>state.moveQueryUpwards)
+    const queryPapers = getState((state)=>state.paperQueries)
+
+    // const searchQuery = getState((state) => state.searchQuery);
     const [query, setQuery] = useState('');
     const [open, setShowModal] = useState(false);
 
@@ -44,32 +50,39 @@ export default function Search({setIsLoading}:any) {
 
     const handleChange = (event:any) => setQuery(event.target.value)
 
-    const handleSearch = () => {
+    const handleSearch = (clickedItem?:any) => {
         setIsLoading(true)
-        axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/search`,{
-            query:query,
-            userId: session?.user?.id
-        })
-        .then((response)=>{
+        let queryPaperIndex = queryPapers.findIndex((paper)=>paper.searchQuery==query)
+        if ( queryPaperIndex !=-1){
+            moveQueryUpwards(queryPaperIndex)
             setIsLoading(false)
-            const formattedPapers = response.data.map((paper:any)=>{return {...paper,journalName: paper.jornal ? paper.journal.name : undefined}})
-            addPapers(formattedPapers); // Update your state with the response data
-        })
-        .catch(error=>{
-            console.log(error)
-        })
+            axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/search?query=${clickedItem ? clickedItem : query}&userId=${session?.user?.id}&isExistingQuery=true`)
+        }else{
+            axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/search?query=${clickedItem ? clickedItem : query}&userId=${session?.user?.id}`)
+            .then((response)=>{
+                setIsLoading(false)
+                let paperQueriesResponse = response.data
+                paperQueriesResponse.papers = paperQueriesResponse?.papers?.map((paper:any)=>({...paper,journalName:paper?.journal?.name}))
+                setPapersQueries(paperQueriesResponse)
+            })
+            .catch(error=>{
+                console.log(error)
+            })
+        }
+        addNewQueryToSearchQryList(clickedItem ? clickedItem : query,session?.user?.id)
+
     };
 
     const filteredItems =
         query === ''
-            ? []
-            : items.filter((item) => {
-                return item.name.toLowerCase().includes(query.toLowerCase())
+            ? searchQueries
+            : searchQueries.filter((item) => {
+                return item?.toLowerCase().includes(query.toLowerCase())
             })
 
-    const groups = filteredItems.reduce((groups:any, item) => {
-        return { ...groups, [item.category]: [...(groups[item.category] || []), item] }
-    }, {})
+    // const groups = filteredItems.reduce((groups:any, item) => {
+    //     return { ...groups, [item.category]: [...(groups[item.category] || []), item] }
+    // }, {})
 
     return <>
         <div className="relative mt-6 px-4 sm:px-6 lg:px-8 flex items-center" onClick={openModal} >
@@ -83,6 +96,7 @@ export default function Search({setIsLoading}:any) {
                         className="block w-full rounded-md border-0 py-1.5 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 pl-10 pr-3"
                         type="text"
                         autoComplete='off'
+                        value={currentSearchQuery}
                     />
                     <div className="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center">
                         <MagGlassIcon />
@@ -116,7 +130,7 @@ export default function Search({setIsLoading}:any) {
                         leaveTo="opacity-0 scale-95"
                     >
                         <Dialog.Panel className="mx-auto max-w-xl transform overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black ring-opacity-5 transition-all">
-                            <Combobox onChange={(item:any) => (window.location = item.url)}>
+                            <Combobox onChange={(item:any) => {handleSearch(item);closeModal()}}>
                                 <div className="relative">
                                     <MagnifyingGlassIcon
                                         className="pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-gray-400"
@@ -130,7 +144,7 @@ export default function Search({setIsLoading}:any) {
                                     />
                                 </div>
 
-                                {query === '' && (
+                                {/* {query === '' && (
                                     <div className="border-t border-gray-100 px-6 py-14 text-center text-sm sm:px-14">
                                         <GlobeAmericasIcon className="mx-auto h-6 w-6 text-gray-400" aria-hidden="true" />
                                         <p className="mt-4 font-semibold text-gray-900">Search for clients and projects</p>
@@ -138,36 +152,37 @@ export default function Search({setIsLoading}:any) {
                                             Quickly access clients and projects by running a global search.
                                         </p>
                                     </div>
-                                )}
+                                )} */}
 
-                                {filteredItems.length > 0 && (
+                                { (
                                     <Combobox.Options static className="max-h-80 scroll-pb-2 scroll-pt-11 space-y-2 overflow-y-auto pb-2">
-                                        {Object.entries(groups).map(([category, items]:[any,any]) => (
-                                            <li key={category}>
-                                                <h2 className="bg-gray-100 px-4 py-2.5 text-xs font-semibold text-gray-900">{category}</h2>
+                                        {/* {Object.entries(groups).map(([category, items]:[any,any]) => ( */}
+                                            <li>
+                                                {/* <h2 className="bg-gray-100 px-4 py-2.5 text-xs font-semibold text-gray-900">{category}</h2> */}
                                                 <ul className="mt-2 text-sm text-gray-800">
-                                                    {items.map((item:any) => (
+                                                    {filteredItems.map((item:any) => (
                                                         <Combobox.Option
-                                                            key={item.id}
+                                                            key={item}
                                                             value={item}
+                                                            // className="cursor-default select-none px-4 py-2 bg-indigo-600 text-white"
                                                             className={({ active }:any) =>
-                                                                classNames('cursor-default select-none px-4 py-2', active && 'bg-indigo-600 text-white')
+                                                                classNames('cursor-pointer select-none px-4 py-2', active && 'bg-indigo-600 text-white')
                                                             }
                                                         >
-                                                            {item.name}
+                                                            {item}
                                                         </Combobox.Option>
                                                     ))}
                                                 </ul>
                                             </li>
-                                        ))}
+                                        {/* ))} */}
                                     </Combobox.Options>
                                 )}
 
                                 {query !== '' && filteredItems.length === 0 && (
                                     <div className="border-t border-gray-100 px-6 py-14 text-center text-sm sm:px-14">
-                                        <FaceFrownIcon className="mx-auto h-6 w-6 text-gray-400" aria-hidden="true" />
-                                        <p className="mt-4 font-semibold text-gray-900">No results found</p>
-                                        <p className="mt-2 text-gray-500">We couldn’t find anything with that term. Please try again.</p>
+                                        {/* <FaceFrownIcon className="mx-auto h-6 w-6 text-gray-400" aria-hidden="true" /> */}
+                                        <p className="mt-4 font-semibold text-gray-900">Press enter for a new search</p>
+                                        <p className="mt-2 text-gray-500">No Results Found in History!</p>
                                     </div>
                                 )}
                             </Combobox>

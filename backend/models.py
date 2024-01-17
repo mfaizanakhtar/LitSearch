@@ -8,10 +8,6 @@ class UserModel(BaseModel):
     userId: str
     provider: str
 
-class SearchBody(BaseModel):
-    query: str
-    userId: str
-
 class RefCitationBody(BaseModel):
     paperId: str
     userId: str
@@ -22,3 +18,7 @@ class Event(BaseModel):
     badge: str = ""
     paperId: str
     userId: str
+
+class EventRequest(BaseModel):
+    event:Event
+    currentSearchQuery:str

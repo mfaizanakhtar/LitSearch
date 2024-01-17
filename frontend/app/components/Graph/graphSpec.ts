@@ -32,7 +32,11 @@ export const createSpec=(data:any)=>{
             "name": "x",
             "type": "point",
             "range": "width",
-            "domain": {"data": "publications", "field": "year"}
+            "domain": {
+                "data": "publications",
+                "field": "year",
+                "sort": {"op": "min", "field": "year"}  // Adding sorting here
+        }
           },
           {
             "name": "y",

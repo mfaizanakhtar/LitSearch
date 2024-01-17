@@ -1,3 +1,8 @@
+export interface PaperQueries {
+    searchQuery:string,
+    papers:Paper[]
+}
+
 export interface Paper {
     paperId: string;
     title: string;
@@ -6,7 +11,7 @@ export interface Paper {
     publicationDate:string,
     journalName:string,
     venue:string,
-    index?:number,
+    arrayIndex?:number,
     paperEvents: PaperEvents;
 }
 

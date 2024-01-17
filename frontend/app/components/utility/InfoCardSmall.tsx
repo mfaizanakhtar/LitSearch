@@ -30,14 +30,14 @@ const InfoCardSmall = ({key,title,breadCrumb,description,footerLeft,footerRight}
           <div className="min-w-0 flex-1">
             <a href="#" className="focus:outline-none">
               <span className="absolute inset-0" aria-hidden="true" />
-              <p className="text-xm font-medium text-gray-900">{title}</p>
-              <p className="truncate text-xs text-gray-500">{breadCrumb}</p>
+              <p className="text-xm font-medium text-gray-900">{title ? title : ''}</p>
+              <p className="truncate text-xs text-gray-500">{breadCrumb ? breadCrumb : ''}</p>
               <p className="mt-5 text-xs text-gray-700">
-                {description}
+                {description ? description : ''}
               </p>
               <div className='flex justify-between mt-8'>
-                <p className="truncate text-xs text-gray-500">{footerLeft}</p>
-                <div className="grid place-items-end"><p className="truncate text-xs text-gray-500">{footerRight}</p></div>
+                <p className="truncate text-xs text-gray-500">{footerLeft ? footerLeft : ''}</p>
+                <div className="grid place-items-end"><p className="truncate text-xs text-gray-500">{footerRight ? footerRight : ''}</p></div>
               </div>
             </a>
           </div>

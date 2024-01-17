@@ -14,7 +14,9 @@ import ScrollToTop from "./utility/ScrollToTop";
 
 export default function HomePage() {
   const papers = getState((state) => state.papers);
-  const addPapers = getState((state) => state.add);
+  const paperQueries = getState((state) => state.paperQueries);
+  const setPapersQueries = getState((state) => state.setPaperQueries);
+  const setSearchQueriesHistory = getState((state)=>state.setSearchQueriesHistory);
   const detailView = getState((state)=>state.detailView)
   const [isLoading,setIsLoading]=useState(true)
   const [userId, setUserId] = useState(null);
@@ -30,28 +32,39 @@ export default function HomePage() {
   }, [session]);
 
   useEffect(()=>{
-    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/userPaperHistory?userId=${session?.user?.id}`)
-    .then(({data})=>{
-      addPapers(data); // Update your state with the response data
-      setIsLoading(false)
-    })
-    .catch(error=>{
+    if(userId && papers.length==0){
+        axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/userPaperHistory?userId=${session?.user?.id}`)
+        .then(({data})=>{
+            console.log(data)
+            setPapersQueries(data); // Update your state with the response data
+          setIsLoading(false)
+        })
+        .catch(error=>{
+    
+        })
 
-    })
+        axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/getAllSearchQueriesForUser?userId=${session?.user?.id}`)
+        .then(({data})=>{
+          let searchQueryArray = data.map((sQueries:any)=>sQueries.searchQuery)
+          setSearchQueriesHistory(searchQueryArray)
+        })
+    }
 },[userId])
   
   
   return(
    <>
     <main className="w-1/3 h-full flex flex-col">
-      {session?.user?.name}
-      <Search setIsLoading={setIsLoading}/>
-      {isLoading ? <Loader/> : <></>}
-      <ul role="list" className="mt-6 space-y-3 mt-6 px-4 sm:px-6 lg:px-8">
-        {papers.map((paper,index) => (
-          <Card key={paper.paperId} index={index}  {...paper}  />
-        ))}
-      </ul>
+        <div className="fixed w-1/3 z-50 bg-white pb-5 rounded-lg"><Search setIsLoading={setIsLoading}/></div>
+        <div className="mt-20">
+            {/* {session?.user?.name} */}
+            {isLoading ? <Loader/> : <></>}
+            <ul role="list" className="mt-6 space-y-3 mt-6 px-4 sm:px-6 lg:px-8">
+                {papers.map((paper,index) => (
+                <Card key={paper.paperId} arrayIndex={index}  {...paper}  />
+                ))}
+            </ul>
+        </div>
       <Mock />
     </main>
 
