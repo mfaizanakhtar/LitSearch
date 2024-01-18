@@ -9,18 +9,40 @@ import requests
 import time
 
 from backend.db import engine
+from backend.models import Event, Search
+
 
 router = APIRouter()
-SEMANTIC_SCHOLAR_BASEURL="https://api.semanticscholar.org/graph/v1/paper"
-FIELDS="title,publicationDate,journal,referenceCount,citationCount,abstract,venue"
-LIMIT=20
-OFFSET=0
-papers, eventlog, query_papers = engine["papers"], engine["events"], engine["query_papers"]
+SEMANTIC_SCHOLAR_BASEURL = "https://api.semanticscholar.org/graph/v1/paper"
+FIELDS = "title,publicationDate,journal,referenceCount,citationCount,abstract,venue"
+LIMIT, OFFSET = 20, 0
+papers, eventlog, state = engine["papers"], engine["events"], engine["queries"]
+
+
+@router.post("/search", response_description="Search Papers")
+async def search(request: Search, background_tasks: BackgroundTasks):
+    print(request)
+    SEARCH_URL = f'{SEMANTIC_SCHOLAR_BASEURL}/search?fields={FIELDS}&query={request.query.replace(" ", "%20")}&limit={LIMIT}&offset={OFFSET}'
+    response = requests.get(SEARCH_URL)
+    # handle response status when not code 200
+    papers = response.json()['data']
+    print(papers)
+    
+    found = await state.find_one({"userId": request.userId, "query": request.query})
+    if found:
+        print(found)
+        await state.update_one({"userId": request.userId, "query": request.query}, {"$push": {"papers": papers}})
+    else:
+        print(f"new state for user:{request.userId} query:{request.query}")
+        await state.insert_one({"userId": request.userId, "query": request.query, "papers": papers})
+
+    background_tasks.add_task(save_search_to_mongodb, request.query, request.userId, papers)
+    return papers
 
 
 def transform_json(input):
     return dict(input, **{
-        "journalName": input.get("journal", {}).get("name", None) if input.get("journal") else {}
+        "journalName": input.get("journal", {}).get("name", None)
     })
 
 
@@ -36,6 +58,8 @@ def convert_to_serializable(doc):
                 # Recursive call for each item in the list
                 doc[key] = [convert_to_serializable(item) if isinstance(item, dict) else item for item in value]
     return doc
+
+
 def transform_event_json(event:Event):
     return {
         "positive":event.positive,
@@ -60,7 +84,7 @@ def save_search_to_mongodb(searchQuery,userId,responseData):
     
     query_paperMongQuery = {"searchQuery":searchQuery,"userId":userId}
     query_paperMongoUpdate={"$setOnInsert":{"papers":paperIds,"index":time.time()}}
-    query_papers.update_one(query_paperMongQuery,query_paperMongoUpdate,upsert=True)
+    state.update_one(query_paperMongQuery,query_paperMongoUpdate,upsert=True)
 
 
 @router.post("/event",response_description="Record Paper Interaction")
@@ -73,7 +97,7 @@ async def record_event(request:EventRequest,background_tasks:BackgroundTasks):
         searchTermMongoUpdate["$set"]["papers.$[elem].index"]=updatedIndex
     arrayFilters = [{ "elem.paperId": request.event.paperId }]
 
-    query_papers.update_one(searchTermMongoQuery,searchTermMongoUpdate,array_filters=arrayFilters)
+    state.update_one(searchTermMongoQuery,searchTermMongoUpdate,array_filters=arrayFilters)
     if(request.event.positive):
         relevantPapers = await fetch_references_citation(request.event.paperId)
         background_tasks.add_task(save_ref_citation_to_mongodb,request.event.paperId, request.event.userId, request.currentSearchQuery, relevantPapers)
@@ -82,7 +106,7 @@ async def record_event(request:EventRequest,background_tasks:BackgroundTasks):
     
 
 # @router.get("/getReferenceCitations",response_description="Get References and Citations")
-async def fetch_references_citation(paperId:str):
+async def fetch_references_citation(paperId:str,userId:str, background_tasks:BackgroundTasks):
     REFERENCES_URL=f'{SEMANTIC_SCHOLAR_BASEURL}/{paperId}/references?fields={FIELDS}&offset=0&limit=10'
     CITATIONS_URL=f'{SEMANTIC_SCHOLAR_BASEURL}/{paperId}/citations?fields={FIELDS}&offset=0&limit=10'
     referencesResp = requests.get(REFERENCES_URL).json()
@@ -95,32 +119,32 @@ async def fetch_references_citation(paperId:str):
 async def save_ref_citation_to_mongodb(paperId,userId,searchQuery,responseData):
     # Logic to save data to MongoDB
     transformed_papers = [transform_json(paper) for paper in responseData]
-    query_papers_relevant_array=[]
+    state_relevant_array=[]
     for data in reversed(transformed_papers):
         paperMongoQuery = {"paperId": data["paperId"]}
         data["index"]=time.time()
-        query_papers_relevant_array.append({"paperId":data["paperId"],"index":data["index"],"paperEvents":{}})
+        state_relevant_array.append({"paperId":data["paperId"],"index":data["index"],"paperEvents":{}})
 
         paperMongoUpdate = {"$setOnInsert": data}
         papers.update_one(paperMongoQuery, paperMongoUpdate, upsert=True)
-    found = await query_papers.find_one({"userId":userId,"searchQuery":searchQuery})
+    found = await state.find_one({"userId":userId,"searchQuery":searchQuery})
     if found:
        existing_papers = found["papers"]
-       unique_entries = {paper['paperId']: paper for paper in existing_papers + query_papers_relevant_array}
+       unique_entries = {paper['paperId']: paper for paper in existing_papers + state_relevant_array}
        merged_papers = list(unique_entries.values())
-       query_papers.update_one({"userId":userId,"searchQuery":searchQuery},
+       state.update_one({"userId":userId,"searchQuery":searchQuery},
                             {"$set":{"papers":merged_papers}})
-                            # {"$push":{"papers":{"$each":query_papers_relevant_array}}})
+                            # {"$push":{"papers":{"$each":state_relevant_array}}})
 
 @router.get("/search", response_description="Search Papers")
 async def add_user(background_tasks:BackgroundTasks,query:str,userId:str,isExistingQuery:bool=False):
-    query_papers_update_mongoQry=({"searchQuery":query,"userId":userId},{"$set":{"index":time.time()}})
+    state_update_mongoQry=({"searchQuery":query,"userId":userId},{"$set":{"index":time.time()}})
 
     if(isExistingQuery): # to just update the timestamp to fetch latest search result
-        background_tasks.add_task(query_papers.update_one,*query_papers_update_mongoQry)
+        background_tasks.add_task(state.update_one,*state_update_mongoQry)
         return
     
-    searchResult = await query_papers.update_one(*query_papers_update_mongoQry)
+    searchResult = await state.update_one(*state_update_mongoQry)
     print(searchResult)
     print("search result printed")
     if(not searchResult.raw_result["n"]):
@@ -136,7 +160,7 @@ async def add_user(background_tasks:BackgroundTasks,query:str,userId:str,isExist
     
 @router.get("/getAllSearchQueriesForUser",response_description="Get history of queries for user")
 async def get_search_queries(userId:str):
-    all_queries = query_papers.find({"userId":userId},{"searchQuery":1,"_id":0}).sort({"index":-1})
+    all_queries = state.find({"userId":userId},{"searchQuery":1,"_id":0}).sort({"index":-1})
     query_results = [convert_to_serializable(queries) async for queries in all_queries]
     return query_results
     
@@ -172,8 +196,8 @@ async def get_query_paper_result(userId,searchQuery=None):
         }
         }
     ]    
-    query_papers_aggregated = query_papers.aggregate(query_paper_pipline)
-    papers_results = [convert_to_serializable(papers) async for papers in query_papers_aggregated]
+    state_aggregated = state.aggregate(query_paper_pipline)
+    papers_results = [convert_to_serializable(papers) async for papers in state_aggregated]
     if(len(papers_results)>0):
         return papers_results[0]
     else: return papers_results

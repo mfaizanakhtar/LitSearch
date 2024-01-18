@@ -6,10 +6,7 @@ import MagGlassIcon from '../components/utility/MagGlassIcon';
 import { FaceFrownIcon, GlobeAmericasIcon } from '@heroicons/react/24/outline';
 
 import axios from 'axios';
-import { useRouter } from 'next/navigation';
 import getState from '../state';
-import { useSession } from 'next-auth/react';
-import { None } from 'vega';
 
 const items = [
     { id: 1, searchQuery:'covid', name: 'Workflow Inc.', category: 'Clients', url: '#' },
@@ -30,14 +27,14 @@ export default function Search({setIsLoading}:any) {
 
     // const searchQuery = getState((state) => state.searchQuery);
     const [query, setQuery] = useState('');
+    const addPapers = getState((state) => state.add);
+    const setQuery = getState((state) => state.setQuery);
+    const query = getState((state) => state.query);
+    const uid = getState((state) => state.uid);
     const [open, setShowModal] = useState(false);
 
     const openModal = () => setShowModal(true);
     const closeModal = () => setShowModal(false);
-
-    const {data : session}:any = useSession({
-        required:true
-      })
 
     const handleKeyDown = (event:any) => {
         if (event.key === 'Enter') {
@@ -69,8 +66,23 @@ export default function Search({setIsLoading}:any) {
                 console.log(error)
             })
         }
-        addNewQueryToSearchQryList(clickedItem ? clickedItem : query,session?.user?.id)
+        addNewQueryToSearchQryList(clickedItem ? clickedItem : query, session?.user?.id)
 
+        axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/search`,{
+            query:query,
+            userId: uid
+        })
+        .then((response)=>{
+            setIsLoading(false)
+            const formattedPapers = response.data.map((paper:any)=>{return {...paper,journalName: paper.jornal ? paper.journal.name : undefined}})
+            addPapers(formattedPapers); // Update your state with the response data
+        })
+        .catch(error=>{
+            console.log(error)
+        })
+        .finally(()=>{
+            console.log(query, uid);
+        })
     };
 
     const filteredItems =

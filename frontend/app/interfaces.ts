@@ -11,11 +11,19 @@ export interface Paper {
     publicationDate:string,
     journalName:string,
     venue:string,
+<<<<<<< Updated upstream
     arrayIndex?:number,
     paperEvents: PaperEvents;
+=======
+    index?:number
+>>>>>>> Stashed changes
 }
 
-export interface PaperEvents{
+export interface User {
+    login: string;
+}
+
+export interface Event {
     positive: boolean
     negative: boolean
     badge?: string

@@ -1,10 +1,13 @@
 import { create } from 'zustand'
+import axios from "axios"
 import {Paper, PaperQueries} from './interfaces'
-import axios from 'axios'
+
 
 interface State {
     session: string
     query: string
+    setQuery: (query: string) => void
+    uid: string
     cmdOpened: boolean
     papers: Array<Paper>
     detailView:boolean
@@ -18,6 +21,7 @@ interface State {
     setPaperQueries:(paperQueries:PaperQueries)=>void
     addPapersToCurrentQuery: (papers: Array<Paper>) => void
     updatePaper: (index:any,eventValues:any) => void
+    fetch: (uid: string) => void
     isDetailView: (status:boolean)=>void
     setDetailPagePaper : (paper:Paper)=>void
 }
@@ -25,6 +29,7 @@ interface State {
 const getState = create<State>()((set) => ({
     session: '',
     query: '',
+    uid: '',
     cmdOpened: false,
     papers: [],
     detailView:false,
@@ -88,8 +93,15 @@ const getState = create<State>()((set) => ({
         }
         return { papers: updatedPapers,paperQueries:paperQueries };
     }),
-    isDetailView: (status:boolean)=>set(()=>({detailView:status})),
-    setDetailPagePaper: (paper:Paper)=>set(()=>({detailPagePaper:paper}))
+    fetch: async (uid: string) => {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${uid}`);
+        const update = await response.data;
+        console.log(update);
+        set(() => ({query: update['query'], papers: update['papers']}));
+      },
+    isDetailView: (status:boolean)=>set(()=>({detailView: status})),
+    setDetailPagePaper: (paper:Paper)=>set(()=>({detailPagePaper:paper})),
+    setQuery: (query: string) => set(()=>({query: query})),
 }))
 
 export default getState;

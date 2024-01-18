@@ -3,7 +3,7 @@ import axios from "axios";
 import NextAuth from "next-auth";
 import { User as NextAuthUser, Account as NextAuthAccount, Profile as NextAuthProfile } from "next-auth";
 
-interface signInArgs{user:NextAuthUser,account:NextAuthAccount,profile:NextAuthProfile}
+interface signInArgs{user: NextAuthUser, account: NextAuthAccount, profile: NextAuthProfile}
 
 export const authOptions = {
     providers:[
@@ -13,7 +13,7 @@ export const authOptions = {
         }),
     ],
     callbacks:{
-        async signIn({user ,account,profile}:signInArgs) {
+        async signIn({user, account, profile}: signInArgs) {
             if (account.provider === 'github') {
               const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/users/loginUser`,
                 {

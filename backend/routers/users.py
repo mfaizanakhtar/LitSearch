@@ -1,7 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
+from sse_starlette.sse import EventSourceResponse
 
 from backend.db import engine
-from backend.models import UserModel
+from backend.models import User
 
 
 router = APIRouter()
@@ -18,7 +19,7 @@ def user_helper(user) -> dict:
 
 
 @router.post("/loginUser", response_description="Add new user")
-async def add_user(user: UserModel):
+async def add_user(user: User):
     collection = engine["users"]
     query = {"userId": user.userId}
     update = {"$setOnInsert": user.dict()}  # Use $setOnInsert to only set these fields if it's a new document
