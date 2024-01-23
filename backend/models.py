@@ -20,21 +20,23 @@ class User(BaseModel):
 
 
 class Event(BaseModel):
+    paperId:str
     userId: uuid
     type: str
-    data: Dict[str, Any]
+    data: Any
+    query:str
 
 
-class EventRequest(BaseModel):
-    event:Event
-    currentSearchQuery:str
+# class EventRequest(BaseModel):
+#     event:Event
+#     currentSearchQuery:str
 
 
-class Search(BaseModel):
-    userId: uuid
-    query: str
+# class Search(BaseModel):
+#     userId: uuid
+#     query: str
 
 
-class Citation(BaseModel):
-    paperId: uuid
-    cites: List[uuid]
+# class Citation(BaseModel):
+#     paperId: uuid
+#     cites: List[uuid]

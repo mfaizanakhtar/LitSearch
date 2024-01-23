@@ -1,107 +1,126 @@
 import { create } from 'zustand'
 import axios from "axios"
-import {Paper, PaperQueries} from './interfaces'
-
+import {Events, Paper, Queries} from './interfaces'
 
 interface State {
     session: string
-    query: string
-    setQuery: (query: string) => void
     uid: string
     cmdOpened: boolean
-    papers: Array<Paper>
     detailView:boolean
     detailPagePaper:Paper | any
-    paperQueries:Array<PaperQueries>
-    searchQueries:Array<string>
-    currentSearchQuery:string | any
-    setSearchQueriesHistory:(queries:string[])=>void
-    addNewQueryToSearchQryList:(query:string,userId:any)=>void
-    moveQueryUpwards:(index:number)=>void
-    setPaperQueries:(paperQueries:PaperQueries)=>void
-    addPapersToCurrentQuery: (papers: Array<Paper>) => void
-    updatePaper: (index:any,eventValues:any) => void
-    fetch: (uid: string) => void
+    queries:Array<Queries>
+    searchQuery:(query:string,userId:any,loaderCallback:any)=>void
+    setQueries:(queries:Array<Queries>)=>void
+    setEvent:(arrayIndex:number,event:Events,callback?:any)=>void
+    // fetch: (uid: string) => void
     isDetailView: (status:boolean)=>void
     setDetailPagePaper : (paper:Paper)=>void
 }
 
 const getState = create<State>()((set) => ({
     session: '',
-    query: '',
     uid: '',
     cmdOpened: false,
-    papers: [],
     detailView:false,
     detailPagePaper:{},
-    paperQueries:[],
-    searchQueries: [],
-    currentSearchQuery:null,
-    setSearchQueriesHistory:(queries:string[])=>set(()=>({searchQueries:queries})),
-    addNewQueryToSearchQryList:(query:any,userId:any)=>set((state)=>{
-        console.log(query)
-        let updatedSearchQueries = [...state.searchQueries]
-        let queryFound = updatedSearchQueries.findIndex((curQuery)=>curQuery==query)
-        if(queryFound!=-1){
-            updatedSearchQueries.splice(queryFound,1)
-            //To update the index for query last used for persistence
-            axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/search?query=${query}&userId=${userId}&isExistingQuery=true`)
-        }
-        updatedSearchQueries.unshift(query)
-        return {searchQueries:updatedSearchQueries}
+    queries:[],
+    setQueries: (queries: Array<Queries>) => set((state) => {
+        let updatedPapersQueries: Array<Queries> = [...state.queries];
+        updatedPapersQueries.unshift(...queries);
+        return { queries: updatedPapersQueries};
     }),
-    moveQueryUpwards:(index:number)=>set((state)=>{
-        let updatedPapersQueries: Array<PaperQueries> = [...state.paperQueries];
-        let paperQueryObjToMove = updatedPapersQueries[index]
-        updatedPapersQueries.splice(index,1)
-        updatedPapersQueries.unshift(paperQueryObjToMove)
-        return { paperQueries: updatedPapersQueries, papers: updatedPapersQueries[0].papers,currentSearchQuery:updatedPapersQueries[0].searchQuery };
-    }),
-    setPaperQueries: (paperQueries: PaperQueries) => set((state) => {
-        let updatedPapersQueries: Array<PaperQueries> = [...state.paperQueries];
-        updatedPapersQueries.unshift(paperQueries);
-        if( paperQueries && paperQueries.papers){
-            return { paperQueries: updatedPapersQueries, papers: paperQueries.papers,currentSearchQuery:paperQueries.searchQuery };
-        }
-        else return state
-    }),
-    addPapersToCurrentQuery: (newPapers: Array<Paper>) => set((state) => {
-        let updatedPapersQueries: Array<PaperQueries> = [...state.paperQueries];
-        let currentPapers = state.papers
-        const map = new Map<string, Paper>();
+    setEvent: async(arrayIndex:number,event:Events,callBack?:any)=>{
+        debugger
+        let queries:Array<Queries>=[]
+        set((state)=>{
+            queries = state.queries
+            console.log(queries)
+            return state
+        })
+        let paper = queries[0].papers[arrayIndex]
 
-        currentPapers.forEach(item => map.set(item.paperId, item));
-        let mergedPapers: Paper[]=[]
-        newPapers.forEach(item => {
-        if (!map.has(item.paperId)) {
-            mergedPapers.push(item)
+        let eventRequest:Events={
+            ...event,
+            paperId:paper.paperId,
+            query:queries[0].query
         }
-        });
-        mergedPapers=mergedPapers.concat(currentPapers)
-        updatedPapersQueries[0].papers=mergedPapers
-        return {paperQueries:updatedPapersQueries,papers:mergedPapers}
-    }),
-    updatePaper: (index:any, eventValues:any) => set((state) => {
-        let updatedPapers = [...state.papers]
-        let paperQueries = state.paperQueries
-        updatedPapers[index].paperEvents = eventValues.paperEvents
-        if(eventValues.paperEvents.negative){
-            const paperElement = updatedPapers[index]
-            updatedPapers.splice(index,1)
-            updatedPapers.push(paperElement)
-            paperQueries[0].papers=updatedPapers
+
+        if(event.type=='upvoted'){
+            paper.upvoted = paper.upvoted ? !paper.upvoted : true
+            paper.downvoted = false
+            eventRequest.data = paper.upvoted
+            queries[0].papers[arrayIndex] = paper
+        }else if(event.type=='downvoted'){
+            paper.downvoted = paper.downvoted ? !paper.downvoted : true
+            paper.upvoted = false
+            eventRequest.data = paper.downvoted
+            queries[0].papers.splice(arrayIndex,1)
+            queries[0].papers.push(paper)
         }
-        return { papers: updatedPapers,paperQueries:paperQueries };
-    }),
-    fetch: async (uid: string) => {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${uid}`);
-        const update = await response.data;
-        console.log(update);
-        set(() => ({query: update['query'], papers: update['papers']}));
-      },
+        set(()=>({queries:[...queries]}))
+
+        let {data}:any = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/event`,eventRequest)
+        let relevantPapers = data?.relevantPapers?.map((paper:any)=>({...paper,journalName:paper.journal?.name}))
+        if(relevantPapers){
+            // const map = new Map<string, Paper>();
+            const papersSet = new Set<string>();
+            queries[0].papers.forEach((item:any) => papersSet.add(item.paperId));
+            // queries[0].papers.forEach((item:any) => map.set(item.paperId, item));
+    
+            let mergedPapers: Paper[]=[]
+            relevantPapers.forEach((item:any) => {
+            if (!papersSet.has(item.paperId)) {
+                mergedPapers.push(item)
+            }
+            });
+            mergedPapers=mergedPapers.concat(queries[0].papers)
+            queries[0].papers=mergedPapers
+            console.log(queries)
+            set(()=>({queries:[...queries]}))
+    
+            if (callBack) callBack(relevantPapers.length)
+        }
+
+
+    },
+    searchQuery:async(query:string,userId:any,loaderCallback:any)=>{
+        debugger
+        let queries:Array<Queries>=[]
+        set((state)=>{
+            queries=state.queries
+            return state
+        })
+        let queriesItemIndex = queries.findIndex((q)=>q.query==query)
+        if(queriesItemIndex!=-1 && queries[queriesItemIndex].papers?.length>0){
+            let queriesItem:Queries = queries[queriesItemIndex]
+            queries.splice(queriesItemIndex,1)
+            queries.unshift(queriesItem)
+            set(()=>({queries:[...queries]}))
+            loaderCallback(false)
+            axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/search?query=${query}&userId=${userId}&isExistingQuery=true`)
+        }else{
+            let {data:queriesResponse} =await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/search?query=${query}&userId=${userId}`)
+            queriesResponse.papers = queriesResponse?.papers?.map((paper:any)=>({...paper,journalName:paper?.journal?.name}))
+            if(queriesItemIndex!=-1){
+                let queriesItemToSwap = {...queries[queriesItemIndex],papers:queriesResponse.papers}
+                queries.splice(queriesItemIndex,1)
+                queries.unshift(queriesItemToSwap)
+            }else{
+                let queriesItem:Queries={query:query,papers:queriesResponse.papers}
+                queries.unshift(queriesItem)
+            }
+            set(()=>({queries:queries}))
+            loaderCallback(false)
+        }
+    },
+    // fetch: async (uid: string) => {
+    //     const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${uid}`);
+    //     const update = await response.data;
+    //     console.log(update);
+    //     set(() => ({query: update['query'], papers: update['papers']}));
+    //   },
     isDetailView: (status:boolean)=>set(()=>({detailView: status})),
     setDetailPagePaper: (paper:Paper)=>set(()=>({detailPagePaper:paper})),
-    setQuery: (query: string) => set(()=>({query: query})),
 }))
 
 export default getState;

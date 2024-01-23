@@ -3,7 +3,7 @@ import React from 'react'
 import ButtonPrimary from './ButtonPrimary'
 
 interface InfoCard{
-    key:string,
+    paperId:string,
     title:string,
     breadCrumb:string,
     description:string,
@@ -11,9 +11,9 @@ interface InfoCard{
     footerRight:string
 }
 
-const InfoCardSmall = ({key,title,breadCrumb,description,footerLeft,footerRight}:InfoCard) => {
+const InfoCardSmall = ({paperId,title,breadCrumb,description,footerLeft,footerRight}:InfoCard) => {
   return <>
-    <div key={key} className="grid grid-cols-1 gap-4 sm:grid-cols-1">
+    <div key={paperId} className="grid grid-cols-1 gap-4 sm:grid-cols-1">
         <div 
         //   key={person.email}
           className="fade-in relative flex space-x-3 rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 hover:border-gray-400"

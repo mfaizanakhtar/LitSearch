@@ -6,14 +6,14 @@ import { createSpec } from './graphSpec'; // Adjust the import path as needed
 
 const VegaGraph: React.FC = () => {
   const graphRef = useRef<HTMLDivElement>(null);
-  const papers = getState((state) => state.papers);
+  const queries = getState((state) => state.queries);
   
 
   useEffect(() => {
-    if (graphRef.current && papers && papers.length>0) {
+    if (graphRef.current && queries.length>0 && queries[0]?.papers.length > 0) {
         var vegaPapersData:{name:string,values:any[]} = {"name":"publications",values:[]}
         // console.log(papers)
-        vegaPapersData.values = papers.filter(paper => paper.publicationDate!=undefined).map(paper=>{
+        vegaPapersData.values = queries[0].papers.filter(paper => paper.publicationDate!=undefined).map(paper=>{
             return {"title":paper?.title,"year":paper?.publicationDate?.substring(0,4),"citations":paper?.citationCount}
         })
       const vegaSpec = createSpec(vegaPapersData)
@@ -23,7 +23,7 @@ const VegaGraph: React.FC = () => {
         hover: true
       }).run();
     }
-  }, [papers]);
+  }, [queries]);
 
   return <div ref={graphRef} />;
 };

@@ -1,5 +1,5 @@
 import { useSession } from 'next-auth/react';
-import {Paper,PaperEvents} from '../../interfaces';
+import {Paper,Events} from '../../interfaces';
 // import { HandThumbUpIcon as HandThumbUpIconSolid,HandThumbDownIcon as HandThumbDownIconSolid} from '@heroicons/react/20/solid'
 // import { HandThumbUpIcon as HandThumbUpIconOutline,HandThumbDownIcon as HandThumbDownIconOutline} from '@heroicons/react/24/outline'
 import ThumbUpIcon from './ThumbUpIcon';
@@ -12,11 +12,9 @@ import { useState } from 'react';
 
 export default function Card(paper: Paper) {
 
-    const updatePaper = getState((state) => state.updatePaper);
+    const setEvent = getState((state)=>state.setEvent)
     const isDetailView = getState((state)=>state.isDetailView)
     const setDetailPagePaper = getState((state)=>state.setDetailPagePaper)
-    const addPapersToCurrentQuery = getState((state)=>state.addPapersToCurrentQuery)
-    const currentSearchQuery = getState((state)=>state.currentSearchQuery)
     const [isLoadingRelevant,setIsLoadingRelevant]=useState(false)
     const [relevantLoadedSize,setRelevantLoadedSize]=useState(0)
     const [isRemoved,setIsRemoved]=useState(false)
@@ -32,53 +30,19 @@ export default function Card(paper: Paper) {
 
     const handleThumbUpClick = async () => {
         setIsLoadingRelevant(true)
-        // console.log(`Is Child: ${paper.isChild}. parent paper: ${paper.parentId}. parent Index: ${paper.index}`)
-        let eventObj:PaperEvents
-        if(paper.paperEvents){
-            eventObj= {positive:!paper.paperEvents.positive,negative:false}
-        }else{
-            eventObj= {positive:true,negative:false}
-        }
-        eventObj.paperId=paper.paperId
-        eventObj.userId=session.user.id
-        updatePaper(paper?.arrayIndex,{
-            paperEvents:eventObj
-        })
-        let requestBody:any={}
-        requestBody.event = eventObj
-        requestBody.currentSearchQuery=currentSearchQuery
-        let response:any = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/event`,requestBody)
-        response.data.relevantPapers = response?.data?.relevantPapers?.map((paper:any)=>({...paper,journalName:paper.journal?.name}))
-        console.log(response)
-        console.log("printing response")
-        addPapersToCurrentQuery(response.data.relevantPapers)
+        let event:Events={type:'upvoted',userId:session?.user.id}
+        await setEvent(paper?.arrayIndex ? paper.arrayIndex : 0,event,setRelevantLoadedSize)
         setIsLoadingRelevant(false)
-        setRelevantLoadedSize(response.data.relevantPapers.length)
+
     };
 
     const handleThumbDownClick = async () => {
-        let eventObj:PaperEvents
-        if(paper.paperEvents){
-            eventObj= {positive:false,negative:!paper.paperEvents.negative}
-        }else{
-            eventObj= {positive:false,negative:true}
-        }
-        eventObj.paperId=paper.paperId
-        eventObj.userId=session.user.id
         setIsRemoved(true)
-        setTimeout(() => {
-            updatePaper(paper?.arrayIndex,{
-                paperEvents:eventObj
-            })
+        setTimeout(async () => {
+            let event:Events={type:'downvoted',userId:session?.user.id}
+            await setEvent(paper.arrayIndex ? paper.arrayIndex : 0,event)
             setIsRemoved(false)
         }, 500);
-
-        let requestBody:any={}
-        requestBody.event = eventObj
-        requestBody.currentSearchQuery=currentSearchQuery
-
-        const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/event`,requestBody)
-        console.log(response)
     };
     return <>
         <li className={`overflow-hidden rounded-md shadow mb-3 relative flex justify-between gap-y-6 ${isRemoved ? 'fade-out' : 'fade-in'} transform hover:scale-105 transition-transform`}>
@@ -108,8 +72,8 @@ export default function Card(paper: Paper) {
                     </div> 
                 : <></>}
                     <div className='mt-5 flex'>
-                        <ThumbUpIcon clickEvent={handleThumbUpClick} iconStatus={paper.paperEvents?.positive ? paper.paperEvents.positive : false} />
-                        <ThumbDownIcon clickEvent={handleThumbDownClick} iconStatus={paper.paperEvents?.negative ? paper.paperEvents.negative : false} />
+                        <ThumbUpIcon clickEvent={handleThumbUpClick} iconStatus={paper.upvoted ? paper.upvoted : false} />
+                        <ThumbDownIcon clickEvent={handleThumbDownClick} iconStatus={paper.downvoted ? paper.downvoted : false} />
                     </div>
                     <div className='mt-5 flex'>
                         {isLoadingRelevant ? <>

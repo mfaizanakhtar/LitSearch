@@ -1,5 +1,5 @@
-export interface PaperQueries {
-    searchQuery:string,
+export interface Queries {
+    query:string,
     papers:Paper[]
 }
 
@@ -11,22 +11,28 @@ export interface Paper {
     publicationDate:string,
     journalName:string,
     venue:string,
-<<<<<<< Updated upstream
     arrayIndex?:number,
-    paperEvents: PaperEvents;
-=======
-    index?:number
->>>>>>> Stashed changes
+    index?:number,
+    upvoted?:boolean,
+    downvoted?:boolean
 }
 
 export interface User {
     login: string;
 }
 
-export interface Event {
-    positive: boolean
-    negative: boolean
-    badge?: string
-    paperId?: string
-    userId?: string
+export interface Events{
+    paperId?:string,
+    userId?:string,
+    type?:'upvoted' | 'downvoted',
+    data?:boolean,
+    query?:string
 }
+
+// export interface Event {
+//     upvoted: boolean
+//     downvoted: boolean
+//     badge?: string
+//     paperId?: string
+//     userId?: string
+// }

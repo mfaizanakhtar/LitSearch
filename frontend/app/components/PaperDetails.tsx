@@ -36,7 +36,7 @@ const PaperDetails = () => {
         </span>
         
         <InfoCardSmall 
-            key={paper.paperId}
+            paperId={paper.paperId}
             title={paper.title}
             breadCrumb={`${paper.publicationDate ? paper.publicationDate : ''} ${paper.publicationDate && paper.journalName ? ',' : ''} ${paper.journalName ? paper.journalName : ''}`}
             description={paper.abstract}

@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Request
-from sse_starlette.sse import EventSourceResponse
 
 from backend.db import engine
 from backend.models import User

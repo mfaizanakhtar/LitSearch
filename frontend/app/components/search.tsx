@@ -1,103 +1,58 @@
 'use client'
-import React, { Fragment, useState, useEffect } from 'react';
+import React, { Fragment, useState } from 'react';
 import { Combobox, Dialog, Transition } from '@headlessui/react';
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 import MagGlassIcon from '../components/utility/MagGlassIcon';
 import { FaceFrownIcon, GlobeAmericasIcon } from '@heroicons/react/24/outline';
 
-import axios from 'axios';
 import getState from '../state';
+import { useSession } from 'next-auth/react';
 
-const items = [
-    { id: 1, searchQuery:'covid', name: 'Workflow Inc.', category: 'Clients', url: '#' },
-    // More items...
-]
 
 function classNames(...classes: string[]) {
     return classes.filter(Boolean).join(' ')
 }
 
 export default function Search({setIsLoading}:any) {
-    const setPapersQueries = getState((state) => state.setPaperQueries);
-    const addNewQueryToSearchQryList = getState((state) => state.addNewQueryToSearchQryList);
-    const currentSearchQuery = getState((state)=>state.currentSearchQuery)
-    const searchQueries = getState((state)=>state.searchQueries)
-    const moveQueryUpwards = getState((state)=>state.moveQueryUpwards)
-    const queryPapers = getState((state)=>state.paperQueries)
-
-    // const searchQuery = getState((state) => state.searchQuery);
-    const [query, setQuery] = useState('');
-    const addPapers = getState((state) => state.add);
-    const setQuery = getState((state) => state.setQuery);
-    const query = getState((state) => state.query);
+    const queries = getState((state)=>state.queries)
+    const searchQuery = getState((state)=>state.searchQuery)
     const uid = getState((state) => state.uid);
+
+    const [currentQuery, setCurrentQuery] = useState('');
     const [open, setShowModal] = useState(false);
 
     const openModal = () => setShowModal(true);
     const closeModal = () => setShowModal(false);
+    const {data : session}:any = useSession({
+        required:true
+      })
 
     const handleKeyDown = (event:any) => {
         if (event.key === 'Enter') {
-            setQuery(event.target.value);
-            console.log(query);
+            setCurrentQuery(event.target.value);
+            console.log(currentQuery)
             closeModal();
             handleSearch()
         }
     }
 
-    const handleChange = (event:any) => setQuery(event.target.value)
+    const handleChange = (event:any) => setCurrentQuery(event.target.value)
 
     const handleSearch = (clickedItem?:any) => {
+        console.log(`clicked item is ${clickedItem}`)
         setIsLoading(true)
-        let queryPaperIndex = queryPapers.findIndex((paper)=>paper.searchQuery==query)
-        if ( queryPaperIndex !=-1){
-            moveQueryUpwards(queryPaperIndex)
-            setIsLoading(false)
-            axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/search?query=${clickedItem ? clickedItem : query}&userId=${session?.user?.id}&isExistingQuery=true`)
-        }else{
-            axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/search?query=${clickedItem ? clickedItem : query}&userId=${session?.user?.id}`)
-            .then((response)=>{
-                setIsLoading(false)
-                let paperQueriesResponse = response.data
-                paperQueriesResponse.papers = paperQueriesResponse?.papers?.map((paper:any)=>({...paper,journalName:paper?.journal?.name}))
-                setPapersQueries(paperQueriesResponse)
-            })
-            .catch(error=>{
-                console.log(error)
-            })
-        }
-        addNewQueryToSearchQryList(clickedItem ? clickedItem : query, session?.user?.id)
-
-        axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/search`,{
-            query:query,
-            userId: uid
-        })
-        .then((response)=>{
-            setIsLoading(false)
-            const formattedPapers = response.data.map((paper:any)=>{return {...paper,journalName: paper.jornal ? paper.journal.name : undefined}})
-            addPapers(formattedPapers); // Update your state with the response data
-        })
-        .catch(error=>{
-            console.log(error)
-        })
-        .finally(()=>{
-            console.log(query, uid);
-        })
+        searchQuery(clickedItem ? clickedItem : currentQuery,session?.user?.id,setIsLoading)
     };
 
     const filteredItems =
-        query === ''
-            ? searchQueries
-            : searchQueries.filter((item) => {
-                return item?.toLowerCase().includes(query.toLowerCase())
+        currentQuery === ''
+            ? queries
+            : queries.filter((queriesItem) => {
+                return queriesItem?.query.toLowerCase().includes(currentQuery.toLowerCase())
             })
 
-    // const groups = filteredItems.reduce((groups:any, item) => {
-    //     return { ...groups, [item.category]: [...(groups[item.category] || []), item] }
-    // }, {})
-
     return <>
-        <div className="relative mt-6 px-4 sm:px-6 lg:px-8 flex items-center" onClick={openModal} >
+        <div className="relative mt-6 px-4 sm:px-6 lg:px-8 flex items-center cursor-pointer" onClick={openModal} >
             <div className='flex-grow'>
                 <div className="relative">
                     <input
@@ -108,7 +63,8 @@ export default function Search({setIsLoading}:any) {
                         className="block w-full rounded-md border-0 py-1.5 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 pl-10 pr-3"
                         type="text"
                         autoComplete='off'
-                        value={currentSearchQuery}
+                        value={queries.length>0 ? queries[0].query : ""}
+                        readOnly={true}
                     />
                     <div className="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center">
                         <MagGlassIcon />
@@ -116,8 +72,7 @@ export default function Search({setIsLoading}:any) {
                 </div>
             </div>
         </div>
-
-        <Transition.Root show={open} as={Fragment} afterLeave={() => setQuery('')} appear>
+        <Transition.Root show={open} as={Fragment} afterLeave={() => setCurrentQuery('')} appear>
             <Dialog as="div" className="relative z-10" onClose={setShowModal}>
                 <Transition.Child
                     as={Fragment}
@@ -174,14 +129,14 @@ export default function Search({setIsLoading}:any) {
                                                 <ul className="mt-2 text-sm text-gray-800">
                                                     {filteredItems.map((item:any) => (
                                                         <Combobox.Option
-                                                            key={item}
-                                                            value={item}
+                                                            key={item.query}
+                                                            value={item.query}
                                                             // className="cursor-default select-none px-4 py-2 bg-indigo-600 text-white"
                                                             className={({ active }:any) =>
                                                                 classNames('cursor-pointer select-none px-4 py-2', active && 'bg-indigo-600 text-white')
                                                             }
                                                         >
-                                                            {item}
+                                                            {item.query}
                                                         </Combobox.Option>
                                                     ))}
                                                 </ul>
@@ -190,7 +145,7 @@ export default function Search({setIsLoading}:any) {
                                     </Combobox.Options>
                                 )}
 
-                                {query !== '' && filteredItems.length === 0 && (
+                                {currentQuery !== '' && filteredItems.length === 0 && (
                                     <div className="border-t border-gray-100 px-6 py-14 text-center text-sm sm:px-14">
                                         {/* <FaceFrownIcon className="mx-auto h-6 w-6 text-gray-400" aria-hidden="true" /> */}
                                         <p className="mt-4 font-semibold text-gray-900">Press enter for a new search</p>

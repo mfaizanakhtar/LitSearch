@@ -9,18 +9,46 @@ import VegaGraph from "./components/Graph/VegaGraph";
 import getState from "./state";
 import PaperDetails from "./components/PaperDetails";
 import ScrollToTop from "./components/utility/ScrollToTop";
+import axios from "axios";
 
 export default function Home() {
-  const { data: session, status } = useSession({
+  const { data: session, status }:any = useSession({
     required:true
   });
-  const loading = status === 'loading';
+  const [userId, setUserId] = useState(null);
+  const queries = getState((state) => state.queries);
+  const setQueries = getState((state) => state.setQueries);
 
-  const papers = useRef(getState().papers);
-  // Connect to the store on mount, disconnect on unmount, catch state-changes in a reference
-  useEffect(() => getState.subscribe(
-    state => (papers.current = state.papers)
-  ), [])
+  
+
+  // const queries = useRef(getState().queries);
+  // // Connect to the store on mount, disconnect on unmount, catch state-changes in a reference
+  // useEffect(() => getState.subscribe(
+  //   state => (queries.current = state.queries)
+  // ), [])
+
+  useEffect(() => {
+    const sessionUserId = session?.user?.id;
+    if (sessionUserId) {
+      setUserId(sessionUserId);
+    }
+  }, [session]);
+
+  useEffect(()=>{
+    console.log(queries.length)
+    if(userId && queries.length==0){
+        axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/userQueryHistory?userId=${session?.user?.id}`)
+        .then(({data})=>{
+            console.log(data)
+            setQueries(data); // Update your state with the response data
+          setIsLoading(false)
+        })
+        .catch(error=>{
+    
+        })
+
+    }
+},[userId])
   
   const detailView = getState((state)=>state.detailView)
   const [isLoading, setIsLoading] = useState(false)
@@ -31,9 +59,11 @@ export default function Home() {
       <Search setIsLoading={setIsLoading}/>
       {isLoading ? <Loader/> : <></>}
       <ul role="list" className="mt-6 space-y-3 mt-6 px-4 sm:px-6 lg:px-8">
-        {papers.current.map((paper,index) => (
-          <Card key={paper.paperId} index={index}  {...paper}  />
-        ))}
+        {queries.length > 0 ? 
+        queries[0].papers.map((paper,index) => (
+          <Card key={paper.paperId} arrayIndex={index}  {...paper}  />
+        )) 
+        : <></>}
       </ul>
       <Mock />
     </main>
