@@ -7,8 +7,11 @@ import time
 
 from backend.db import engine
 from backend.models import Event
-from backend.services.api import fetch_references_citation, get_search_result
-from backend.services.mongo import get_queries, get_queries_history, save_search_result, save_ref_citation
+from backend.services.api import  get_search_result
+from backend.services.mongo import get_queries, get_queries_history, save_search_result
+
+
+from backend.services.events import emit
 
 
 router = APIRouter()
@@ -50,19 +53,10 @@ async def get_user_papers(userId:str):
 
 @router.post("/event",response_description="Record Paper Interaction")
 async def record_event(request:Event,background_tasks:BackgroundTasks):
-    searchTermMongoQuery={"papers.paperId":request.paperId,"userId":request.userId}
-    if(request.type=='downvoted'):
-        updatedIndex=-999999999999+time.time()
-        searchTermMongoUpdate={"$set":{ "papers.$[elem].downvoted": request.data, 
-                                       "papers.$[elem].upvoted": not request.data,
-                                       "papers.$[elem].index":updatedIndex} }
-        queries.update_one(searchTermMongoQuery,searchTermMongoUpdate,array_filters=[{ "elem.paperId": request.paperId }])
+    future = emit(request.type, {"request": request, "background_tasks": background_tasks})
 
-    elif(request.type=='upvoted'):
-        searchTermMongoUpdate={"$set":{ "papers.$[elem].upvoted": request.data, "papers.$[elem].downvoted": not request.data } }
-        queries.update_one(searchTermMongoQuery,searchTermMongoUpdate,array_filters=[{ "elem.paperId": request.paperId }])
-        relevantPapers = await fetch_references_citation(request.paperId)
-        background_tasks.add_task(save_ref_citation,request.userId, request.query, relevantPapers)
-        return {"status":"updated","relevantPapers":relevantPapers}
-    return {"status":"updated"}
-    
+    if request.type == 'upvoted':
+        result = await future
+        return {"status": "updated", "relevantPapers": result}
+    else:
+        return {"status": "updated"}
