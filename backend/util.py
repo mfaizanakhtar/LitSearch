@@ -1,10 +1,9 @@
 from bson import ObjectId
 
 def transform_paper_json(input):
-    print(input)
     return dict(input, **{
         "journalName": input.get("journal", {"name": None}).get("name")
-    })
+    }) if input.get("journal") else input
 
 def convert_to_serializable(doc):
     if isinstance(doc, dict):

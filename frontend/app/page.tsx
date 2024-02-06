@@ -56,7 +56,8 @@ export default function Home() {
   return (
    <>
     <main className="w-1/3 h-full flex flex-col">
-      <Search setIsLoading={setIsLoading}/>
+    <div className="fixed w-1/3 z-50 bg-white pb-5 rounded-lg"><Search setIsLoading={setIsLoading}/></div>
+    <div className="mt-20">
       {isLoading ? <Loader/> : <></>}
       <ul role="list" className="mt-6 space-y-3 mt-6 px-4 sm:px-6 lg:px-8">
         {queries.length > 0 ? 
@@ -65,6 +66,7 @@ export default function Home() {
         )) 
         : <></>}
       </ul>
+      </div>
       <Mock />
     </main>
 
