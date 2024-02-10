@@ -48,7 +48,7 @@ export default function Home() {
       else sortedPapers = sortByDate(rawPapers,sortType.sortOrder) //sort here
       setsortedPapers(sortedPapers)
     }
-  },[queries && queries.length>0 ? queries[0].papers : queries,sortType])
+  },[JSON.stringify(queries),sortType])
 
   useEffect(()=>{
     console.log(queries.length)
