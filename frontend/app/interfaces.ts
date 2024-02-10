@@ -29,6 +29,10 @@ export interface Events{
     query?:string
 }
 
+export interface SortType{
+    sortField?:'Year',
+    sortOrder?:'asc'|'desc'|'relevance'
+}
 // export interface Event {
 //     upvoted: boolean
 //     downvoted: boolean

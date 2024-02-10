@@ -7,6 +7,7 @@ import { FaceFrownIcon, GlobeAmericasIcon } from '@heroicons/react/24/outline';
 
 import getState from '../state';
 import { useSession } from 'next-auth/react';
+import SortDropDown from './utility/SortDropDown';
 
 
 function classNames(...classes: string[]) {
@@ -71,6 +72,9 @@ export default function Search({setIsLoading}:any) {
                     </div>
                 </div>
             </div>
+        </div>
+        <div className='mt-2 px-4 sm:px-6 lg:px-8 items-center cursor-pointer'>
+            <div className='text-right'><SortDropDown/></div>
         </div>
         <Transition.Root show={open} as={Fragment} afterLeave={() => setCurrentQuery('')} appear>
             <Dialog as="div" className="relative z-10" onClose={setShowModal}>
