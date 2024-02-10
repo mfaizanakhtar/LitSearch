@@ -10,6 +10,8 @@ import getState from "./state";
 import PaperDetails from "./components/PaperDetails";
 import ScrollToTop from "./components/utility/ScrollToTop";
 import axios from "axios";
+import { sortByDate } from "./helper";
+import { Paper } from "./interfaces";
 
 export default function Home() {
   const { data: session, status }:any = useSession({
@@ -18,6 +20,8 @@ export default function Home() {
   const [userId, setUserId] = useState(null);
   const queries = getState((state) => state.queries);
   const setQueries = getState((state) => state.setQueries);
+  const sortType = getState((state)=>state.sortType)
+  const [sortedPapers,setsortedPapers] = useState<Paper[]>([])
 
   
 
@@ -33,6 +37,18 @@ export default function Home() {
       setUserId(sessionUserId);
     }
   }, [session]);
+
+  useEffect(()=>{
+    debugger
+    if(queries && queries.length > 0){
+      debugger
+      let rawPapers = queries[0].papers.map((item,index)=>({...item,arrayIndex:index})) //to preserve original index for events
+      let sortedPapers:Paper[] = []
+      if(sortType.sortOrder=='relevance') sortedPapers = rawPapers // keep as is
+      else sortedPapers = sortByDate(rawPapers,sortType.sortOrder) //sort here
+      setsortedPapers(sortedPapers)
+    }
+  },[JSON.stringify(queries),sortType])
 
   useEffect(()=>{
     console.log(queries.length)
@@ -57,12 +73,12 @@ export default function Home() {
    <>
     <main className="w-1/3 h-full flex flex-col">
     <div className="fixed w-1/3 z-50 bg-white pb-5 rounded-lg"><Search setIsLoading={setIsLoading}/></div>
-    <div className="mt-20">
-      {isLoading ? <Loader/> : <></>}
+    <div className="mt-24">
+      {isLoading ? <div className="mt-6"><Loader/></div> : <></>}
       <ul role="list" className="mt-6 space-y-3 mt-6 px-4 sm:px-6 lg:px-8">
         {queries.length > 0 ? 
-        queries[0].papers.map((paper,index) => (
-          <Card key={paper.paperId} arrayIndex={index}  {...paper}  />
+        sortedPapers.map((paper,index) => (
+          <Card key={paper.paperId} arrayIndex={paper.arrayIndex}  {...paper}  />
         )) 
         : <></>}
       </ul>

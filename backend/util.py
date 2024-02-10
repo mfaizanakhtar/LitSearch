@@ -2,8 +2,8 @@ from bson import ObjectId
 
 def transform_paper_json(input):
     return dict(input, **{
-        "journalName": input.get("journal", {"name": None}).get("name")
-    }) if input.get("journal") else input
+        "journalName": input.get("journal").get("name")
+    }) if input and input.get("journal") else input
 
 def convert_to_serializable(doc):
     if isinstance(doc, dict):
