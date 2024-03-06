@@ -33,6 +33,13 @@ export interface SortType{
     sortField?:'Year',
     sortOrder?:'asc'|'desc'|'relevance'
 }
+
+export interface Project{
+    name:string,
+    desc:string,
+    team?:Array<{userId:String,role:String}>,
+    papers?:Array<{paperId:String}>
+}
 // export interface Event {
 //     upvoted: boolean
 //     downvoted: boolean

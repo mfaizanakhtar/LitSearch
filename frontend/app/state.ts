@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import axios from "axios"
-import {Events, Paper, Queries, SortType} from './interfaces'
+import {Events, Paper, Project, Queries, SortType} from './interfaces'
 import { sortByDate } from './helper'
 
 interface State {
@@ -12,7 +12,14 @@ interface State {
     originalQueries:Array<Queries>
     queries:Array<Queries>
     sortType:SortType
+
+    projects:Array<Project>
+    addNewProject:(project:Project,userId:any)=>void
+    getAllProjects:(userId:String|any)=>void
+    addPaperToProject:(userId:String,paperId:any,projectName:String)=>void
+
     setSortType:(sortField:'Year',sortType:'asc'|'desc'|'relevance')=>void
+
     searchQuery:(query:string,userId:any,loaderCallback:any)=>void
     setQueries:(queries:Array<Queries>)=>void
     setEvent:(arrayIndex:number,event:Events,callback?:any)=>void
@@ -29,6 +36,31 @@ const getState = create<State>()((set) => ({
     detailPagePaper:{},
     originalQueries:[],
     queries:[],
+
+    projects:[],
+    addNewProject:async(project:Project,userId:any)=>{
+        let {data}:any = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/projects/addProject`,{...project,userId})
+        if(data){
+            set((state)=>{
+                let updatedProjects:Array<Project> = [...state.projects]
+                updatedProjects.unshift(project)
+                return {projects:updatedProjects}
+            })
+        }
+    },
+    getAllProjects:async(userId:String)=>{
+        let {data}:any = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/projects/getUserProjects?userId=${userId}`)
+        set(()=>{
+            let updatedProjects:Array<Project> = data
+            return {projects:updatedProjects}
+        })
+    },
+    addPaperToProject:async(userId:String,paperId:any,projectName:String)=>{
+       let {data} = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/projects/addPaperToProject`,
+            {paperId:paperId,projectName:projectName,userId:userId}
+       )
+       console.log(data)
+    },
     sortType:{sortField:'Year',sortOrder:'relevance'},
     setSortType:(sortField:'Year',sortOrder:'asc'|'desc'|'relevance' = 'relevance')=>set(()=>{
         return {sortType:{sortField:sortField,sortOrder:sortOrder}}
@@ -41,32 +73,33 @@ const getState = create<State>()((set) => ({
     setEvent: async(arrayIndex:number,event:Events,callBack?:any)=>{
         debugger
         let queries:Array<Queries>=[]
+        let eventRequest:Events={}
         set((state)=>{
-            queries = state.queries
-            console.log(queries)
-            return state
+                queries = state.queries
+                console.log(queries)
+
+            let paper = queries[0].papers[arrayIndex]
+
+            eventRequest={
+                ...event,
+                paperId:paper.paperId,
+                query:queries[0].query
+            }
+
+            if(event.type=='upvoted'){
+                paper.upvoted = paper.upvoted ? !paper.upvoted : true
+                paper.downvoted = false
+                eventRequest.data = paper.upvoted
+                queries[0].papers[arrayIndex] = paper
+            }else if(event.type=='downvoted'){
+                paper.downvoted = paper.downvoted ? !paper.downvoted : true
+                paper.upvoted = false
+                eventRequest.data = paper.downvoted
+                queries[0].papers.splice(arrayIndex,1)
+                queries[0].papers.push(paper)
+            }
+        return {queries:[...queries]}
         })
-        let paper = queries[0].papers[arrayIndex]
-
-        let eventRequest:Events={
-            ...event,
-            paperId:paper.paperId,
-            query:queries[0].query
-        }
-
-        if(event.type=='upvoted'){
-            paper.upvoted = paper.upvoted ? !paper.upvoted : true
-            paper.downvoted = false
-            eventRequest.data = paper.upvoted
-            queries[0].papers[arrayIndex] = paper
-        }else if(event.type=='downvoted'){
-            paper.downvoted = paper.downvoted ? !paper.downvoted : true
-            paper.upvoted = false
-            eventRequest.data = paper.downvoted
-            queries[0].papers.splice(arrayIndex,1)
-            queries[0].papers.push(paper)
-        }
-        set(()=>({queries:[...queries]}))
 
         let {data}:any = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/event`,eventRequest)
         let relevantPapers = data?.relevantPapers?.map((paper:any)=>({...paper,journalName:paper.journal?.name}))
@@ -122,12 +155,6 @@ const getState = create<State>()((set) => ({
             loaderCallback(false)
         }
     },
-    // fetch: async (uid: string) => {
-    //     const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${uid}`);
-    //     const update = await response.data;
-    //     console.log(update);
-    //     set(() => ({query: update['query'], papers: update['papers']}));
-    //   },
     isDetailView: (status:boolean)=>set(()=>({detailView: status})),
     setDetailPagePaper: (paper:Paper)=>set(()=>({detailPagePaper:paper})),
 }))

@@ -2,19 +2,20 @@ from fastapi import APIRouter, Request
 
 from backend.db import engine
 from backend.models import User
+from backend.util import parse_mongo_dict
 
 
 router = APIRouter()
 
-def user_helper(user) -> dict:
-    return {
-        "id": str(user["_id"]),
-        "name": user["name"],
-        "email": user["email"],
-        "image": user["image"],
-        "userId": str(user["userId"]),
-        "provider":user["provider"]
-    }
+# def user_helper(user) -> dict:
+#     return {
+#         "id": str(user["_id"]),
+#         "name": user["name"],
+#         "email": user["email"],
+#         "image": user["image"],
+#         "userId": str(user["userId"]),
+#         "provider":user["provider"]
+#     }
 
 
 @router.post("/loginUser", response_description="Add new user")
@@ -31,4 +32,4 @@ async def add_user(user: User):
         return_document=True  # Return the document after the update
     )
 
-    return user_helper(new_user)
+    return parse_mongo_dict(new_user)

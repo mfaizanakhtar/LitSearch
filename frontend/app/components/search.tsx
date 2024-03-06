@@ -1,13 +1,14 @@
 'use client'
 import React, { Fragment, useState } from 'react';
 import { Combobox, Dialog, Transition } from '@headlessui/react';
-import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
+import { MagnifyingGlassIcon, PlusCircleIcon } from '@heroicons/react/20/solid';
 import MagGlassIcon from '../components/utility/MagGlassIcon';
-import { FaceFrownIcon, GlobeAmericasIcon } from '@heroicons/react/24/outline';
 
 import getState from '../state';
 import { useSession } from 'next-auth/react';
-import SortDropDown from './utility/SortDropDown';
+import DropDown from './utility/DropDown';
+
+
 
 
 function classNames(...classes: string[]) {
@@ -52,6 +53,19 @@ export default function Search({setIsLoading}:any) {
                 return queriesItem?.query.toLowerCase().includes(currentQuery.toLowerCase())
             })
 
+    const [sortByText,setSortByText]=useState('Sort By - Relevance')
+    const setSortType = getState((state)=>state.setSortType)
+
+    const sortByYear = (sortType:'asc'|'desc'|'relevance',buttonText:string) =>{
+        setSortByText(`Sort By - ${buttonText}`)
+        setSortType("Year",sortType)
+    } 
+    
+    const sortDropDownArray=[{name:"Relevance",clickEvent:()=>{sortByYear('relevance',"Relevance")}},
+                    {name:"Year Ascending",clickEvent:()=>{sortByYear('asc',"Year Ascending")}},
+                    {name:"Year Descending",clickEvent:()=>{sortByYear('desc',"Year Descending")}}
+                ]
+
     return <>
         <div className="relative mt-6 px-4 sm:px-6 lg:px-8 flex items-center cursor-pointer" onClick={openModal} >
             <div className='flex-grow'>
@@ -74,7 +88,9 @@ export default function Search({setIsLoading}:any) {
             </div>
         </div>
         <div className='mt-2 px-4 sm:px-6 lg:px-8 items-center cursor-pointer'>
-            <div className='text-right'><SortDropDown/></div>
+            <div className='text-right static z-50'>
+                <DropDown dropDownArray={sortDropDownArray} btnText={sortByText} />
+            </div>
         </div>
         <Transition.Root show={open} as={Fragment} afterLeave={() => setCurrentQuery('')} appear>
             <Dialog as="div" className="relative z-10" onClose={setShowModal}>

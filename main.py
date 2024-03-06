@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import backend.routers.users as users
 import backend.routers.papers as papers
+import backend.routers.projects as projects
 
 load_dotenv()  # Load environment variables
 
@@ -17,3 +18,4 @@ app.add_middleware(
 
 app.include_router(users.router, prefix="/api/users")
 app.include_router(papers.router, prefix="/api/paper")
+app.include_router(projects.router, prefix="/api/projects")

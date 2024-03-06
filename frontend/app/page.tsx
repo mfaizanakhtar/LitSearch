@@ -22,14 +22,7 @@ export default function Home() {
   const setQueries = getState((state) => state.setQueries);
   const sortType = getState((state)=>state.sortType)
   const [sortedPapers,setsortedPapers] = useState<Paper[]>([])
-
-  
-
-  // const queries = useRef(getState().queries);
-  // // Connect to the store on mount, disconnect on unmount, catch state-changes in a reference
-  // useEffect(() => getState.subscribe(
-  //   state => (queries.current = state.queries)
-  // ), [])
+  const getAllProjects = getState((state)=>state.getAllProjects)
 
   useEffect(() => {
     const sessionUserId = session?.user?.id;
@@ -65,6 +58,8 @@ export default function Home() {
 
     }
 },[userId])
+
+  useEffect(()=>{getAllProjects(userId)},[userId])
   
   const detailView = getState((state)=>state.detailView)
   const [isLoading, setIsLoading] = useState(false)
@@ -72,10 +67,10 @@ export default function Home() {
   return (
    <>
     <main className="w-1/3 h-full flex flex-col">
-    <div className="fixed w-1/3 z-50 bg-white pb-5 rounded-lg"><Search setIsLoading={setIsLoading}/></div>
+    <div className="fixed w-1/3 z-20 bg-white pb-5 rounded-lg"><Search setIsLoading={setIsLoading}/></div>
     <div className="mt-24">
       {isLoading ? <div className="mt-6"><Loader/></div> : <></>}
-      <ul role="list" className="mt-6 space-y-3 mt-6 px-4 sm:px-6 lg:px-8">
+      <ul role="list" className="mt-6 space-y-3 px-4 sm:px-6 lg:px-8">
         {queries.length > 0 ? 
         sortedPapers.map((paper,index) => (
           <Card key={paper.paperId} arrayIndex={paper.arrayIndex}  {...paper}  />
@@ -88,7 +83,7 @@ export default function Home() {
 
     <aside className="fixed inset-y-0 right-0 w-2/3 flex flex-col">
       {/* <Mock /> */}
-      {detailView ? <PaperDetails /> : <div className="fade-in"><VegaGraph /></div>}
+      {detailView ? <PaperDetails /> : <div className="absolute z-0 fade-in"><VegaGraph /></div>}
     </aside>
     <ScrollToTop></ScrollToTop>
     </>

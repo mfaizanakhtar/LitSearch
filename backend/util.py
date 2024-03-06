@@ -17,3 +17,7 @@ def convert_to_serializable(doc):
                 # Recursive call for each item in the list
                 doc[key] = [convert_to_serializable(item) if isinstance(item, dict) else item for item in value]
     return doc
+
+def parse_mongo_dict(input):
+    input["_id"]=str(input["_id"])
+    return input

@@ -26,6 +26,16 @@ class Event(BaseModel):
     data: Any
     query:str
 
+class Project(BaseModel):
+    name:str
+    desc:str
+    userId:str
+
+class PaperProject(BaseModel):
+    paperId:str
+    projectName:str
+    userId:str
+
 
 # class EventRequest(BaseModel):
 #     event:Event
