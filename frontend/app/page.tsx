@@ -39,9 +39,7 @@ export default function Home() {
   }, [session]);
 
   useEffect(()=>{
-    debugger
     if(queries && queries.length > 0){
-      debugger
       let rawPapers = queries[0].papers.map((item,index)=>({...item,arrayIndex:index})) //to preserve original index for events
       let sortedPapers:Paper[] = []
       if(sortType.sortOrder=='relevance') sortedPapers = rawPapers // keep as is

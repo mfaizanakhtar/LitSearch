@@ -77,7 +77,7 @@ export default function Search({setIsLoading}:any) {
             <div className='text-right'><SortDropDown/></div>
         </div>
         <Transition.Root show={open} as={Fragment} afterLeave={() => setCurrentQuery('')} appear>
-            <Dialog as="div" className="relative z-10" onClose={setShowModal}>
+            <Dialog as="div" className="relative z-50" onClose={setShowModal}>
                 <Transition.Child
                     as={Fragment}
                     enter="ease-out duration-300"
