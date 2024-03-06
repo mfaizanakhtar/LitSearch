@@ -53,7 +53,7 @@ export default function Home() {
   useEffect(()=>{
     console.log(queries.length)
     if(userId && queries.length==0){
-        axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/userQueryHistory?userId=${session?.user?.id}`)
+        axios.get(`${process.env.NEXT_PUBLIC_API_URL}api/paper/userQueryHistory?userId=${session?.user?.id}`)
         .then(({data})=>{
             console.log(data)
             setQueries(data); // Update your state with the response data

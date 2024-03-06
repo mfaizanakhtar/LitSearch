@@ -68,7 +68,7 @@ const getState = create<State>()((set) => ({
         }
         set(()=>({queries:[...queries]}))
 
-        let {data}:any = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/event`,eventRequest)
+        let {data}:any = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}api/paper/event`,eventRequest)
         let relevantPapers = data?.relevantPapers?.map((paper:any)=>({...paper,journalName:paper.journal?.name}))
         if(relevantPapers){
             // const map = new Map<string, Paper>();
@@ -106,7 +106,7 @@ const getState = create<State>()((set) => ({
             queries.unshift(queriesItem)
             set(()=>({queries:[...queries]}))
             loaderCallback(false)
-            axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/search?query=${query}&userId=${userId}&isExistingQuery=true`)
+            axios.get(`${process.env.NEXT_PUBLIC_API_URL}api/paper/search?query=${query}&userId=${userId}&isExistingQuery=true`)
         }else{
             let {data:queriesResponse} =await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/search?query=${query}&userId=${userId}`)
             queriesResponse.papers = queriesResponse?.papers?.map((paper:any)=>({...paper,journalName:paper?.journal?.name}))
@@ -123,7 +123,7 @@ const getState = create<State>()((set) => ({
         }
     },
     // fetch: async (uid: string) => {
-    //     const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${uid}`);
+    //     const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}api/users/${uid}`);
     //     const update = await response.data;
     //     console.log(update);
     //     set(() => ({query: update['query'], papers: update['papers']}));

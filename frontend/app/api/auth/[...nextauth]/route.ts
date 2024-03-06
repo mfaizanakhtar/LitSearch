@@ -15,7 +15,7 @@ const authOptions:any = {
     callbacks:{
         async signIn({user, account, profile}: signInArgs) {
             if (account.provider === 'github') {
-              const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/users/loginUser`,
+              const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}api/users/loginUser`,
                 {
                     userId: user.id,
                     provider: account.provider,
