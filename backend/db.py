@@ -1,8 +1,13 @@
 # db/database.py
+from pathlib import Path
+from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 
-MONGO_DETAILS = os.getenv("MONGO_DETAILS")
+load_dotenv()
+
+MONGO_DETAILS = os.getenv("MONGODB_URI")
+print(MONGO_DETAILS)
 
 client = AsyncIOMotorClient(MONGO_DETAILS)
 engine = client.litSearch
