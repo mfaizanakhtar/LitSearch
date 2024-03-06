@@ -108,7 +108,7 @@ const getState = create<State>()((set) => ({
             loaderCallback(false)
             axios.get(`${process.env.NEXT_PUBLIC_API_URL}api/paper/search?query=${query}&userId=${userId}&isExistingQuery=true`)
         }else{
-            let {data:queriesResponse} =await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/search?query=${query}&userId=${userId}`)
+            let {data:queriesResponse} =await axios.get(`${process.env.NEXT_PUBLIC_API_URL}api/paper/search?query=${query}&userId=${userId}`)
             queriesResponse.papers = queriesResponse?.papers?.map((paper:any)=>({...paper,journalName:paper?.journal?.name}))
             if(queriesItemIndex!=-1){
                 let queriesItemToSwap = {...queries[queriesItemIndex],papers:queriesResponse.papers}
