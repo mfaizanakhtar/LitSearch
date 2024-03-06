@@ -17,6 +17,7 @@ const VegaGraph: React.FC = () => {
             return {"title":paper?.title,"year":paper?.publicationDate?.substring(0,4),"citations":paper?.citationCount}
         })
       const vegaSpec = createSpec(vegaPapersData)
+      // @ts-ignore
       const view = new View(parse(vegaSpec), {
         renderer: 'svg',  // Specify SVG rendering
         container: graphRef.current,

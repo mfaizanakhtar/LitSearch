@@ -5,7 +5,7 @@ import { User as NextAuthUser, Account as NextAuthAccount, Profile as NextAuthPr
 
 interface signInArgs{user: NextAuthUser, account: NextAuthAccount, profile: NextAuthProfile}
 
-export const authOptions = {
+const authOptions:any = {
     providers:[
         GitHubProvider({
             clientId:process.env.GITHUB_ID!,
@@ -35,6 +35,10 @@ export const authOptions = {
     }
 };
 
-export const handler = NextAuth(authOptions)
+const handler = NextAuth(authOptions)
+
+// export default function authHandler(req: any, res: any) {
+//     return NextAuth(req, res, authOptions);
+// }
 
 export {handler as GET,handler as POST};
