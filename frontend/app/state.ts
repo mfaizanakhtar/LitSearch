@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import axios from "axios"
 import {Events, Paper, Queries, SortType} from './interfaces'
-import { sortByDate } from './helper'
 
 interface State {
     session: string
@@ -9,7 +8,6 @@ interface State {
     cmdOpened: boolean
     detailView:boolean
     detailPagePaper:Paper | any
-    originalQueries:Array<Queries>
     queries:Array<Queries>
     sortType:SortType
     setSortType:(sortField:'Year',sortType:'asc'|'desc'|'relevance')=>void
@@ -27,7 +25,6 @@ const getState = create<State>()((set) => ({
     cmdOpened: false,
     detailView:false,
     detailPagePaper:{},
-    originalQueries:[],
     queries:[],
     sortType:{sortField:'Year',sortOrder:'relevance'},
     setSortType:(sortField:'Year',sortOrder:'asc'|'desc'|'relevance' = 'relevance')=>set(()=>{
