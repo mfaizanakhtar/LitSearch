@@ -71,7 +71,7 @@ const Projects = () => {
             <div className='m-4'>
             <ul role="list" className="mt-3 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
             {projects.map((project)=>(
-                <ProjectListCard clickEvent={getProjectDetails} projectName={project.name} projectDesc={project.desc}/>
+                    <ProjectListCard clickEvent={getProjectDetails} projectName={project.name} projectDesc={project.desc}/>
             ))}
             </ul>
             </div>

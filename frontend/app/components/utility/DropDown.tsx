@@ -1,6 +1,6 @@
 import { Fragment, useState } from 'react'
 import { Menu, Transition } from '@headlessui/react'
-import { ChevronDownIcon } from '@heroicons/react/20/solid'
+import { ChevronDownIcon,CheckIcon } from '@heroicons/react/20/solid'
 
 function classNames(...classes:any) {
   return classes.filter(Boolean).join(' ')
@@ -9,6 +9,7 @@ function classNames(...classes:any) {
 interface DropDown{
   name: string;
   seperator?:boolean;
+  ticked?:boolean;
   clickEvent: () => void;
 }
 
@@ -62,9 +63,10 @@ export default function DropDown({ dropDownArray,btnHtml,btnText,heading }: Drop
                 onClick={item.clickEvent}
                   className={classNames(
                     active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
-                    'block px-4 py-2 text-sm cursor-pointer'
+                    'block px-4 py-2 text-sm cursor-pointer flex'
                   )}
                 >
+                  {item.ticked ? <CheckIcon className='h-4 w-4 pt-1 mr-2' /> : <></>}
                   {item.name}
                 </div>
               )}

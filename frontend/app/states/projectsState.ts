@@ -29,10 +29,23 @@ const projectState = create<ProjectState>()((set) => ({
         })
     },
     addPaperToProject:async(userId:String,paperId:any,projectName:String)=>{
+        set((state)=>{
+            let updatedProjects = state.projects
+            updatedProjects.forEach((project)=>{
+                if(project.name==projectName){
+                    debugger
+                    let isExistsIndex = project.papers?.findIndex(paper=>paper.paperId=paperId)
+                    if(isExistsIndex!=undefined && isExistsIndex>-1) project.papers?.splice(isExistsIndex,1)
+                    else project.papers?.push({paperId:paperId})
+                }
+            })
+            return {projects:updatedProjects}
+       })
        let {data} = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}api/projects/addPaperToProject`,
             {paperId:paperId,projectName:projectName,userId:userId}
        )
        console.log(data)
+
     },
     
 }))

@@ -70,7 +70,9 @@ export default function Card(paper: Paper) {
                         <ThumbUpIcon clickEvent={handleThumbUpClick} iconStatus={paper.upvoted ? paper.upvoted : false} />
                         <ThumbDownIcon clickEvent={handleThumbDownClick} iconStatus={paper.downvoted ? paper.downvoted : false} />
                         <div className='absolute right-4 bg-opacity-100'><DropDown 
-                            dropDownArray={projects.map((project)=>({name:project.name,clickEvent:()=>(addPaperToProject(session?.user.id,paper.paperId,project.name))}))}                            
+                            dropDownArray={projects.map((project)=>({name:project.name,
+                                ticked:project.papers?.some(projectPaper=>projectPaper.paperId==paper.paperId),
+                                clickEvent:()=>(addPaperToProject(session?.user.id,paper.paperId,project.name))}))}                            
                             btnHtml={<PlusCircleIcon className='h-5 w-5 cursor-pointer' ></PlusCircleIcon>}
                             heading='Add to project'
                         /></div>

@@ -4,7 +4,7 @@ export default function ProjectListCard({clickEvent,projectName,projectDesc}:{cl
   return (
     <>
       {/* <h2 className="text-sm font-medium text-gray-500">Pinned Projects</h2> */}
-          <li key={projectName} className="flex rounded-md shadow-sm w-full mt-3 ml-2 cursor-pointer">
+          <li key={projectName} className="border-2 border-primary flex rounded-md shadow-sm w-full mt-3 ml-2 cursor-pointer">
             {/* <div
               className={classNames(
                 project.bgColor,
@@ -13,7 +13,7 @@ export default function ProjectListCard({clickEvent,projectName,projectDesc}:{cl
             >
               {project.initials}
             </div> */}
-            <div className="flex flex-1 items-center justify-between rounded-md border-b border-r border-t border-l border-gray-200 bg-white">
+            <div className="hover:scale-105 transition-transform flex flex-1 items-center justify-between rounded-md border-b border-r border-t border-l border-gray-200 bg-white">
               <div onClick={()=>clickEvent(projectName)} className="flex-1 truncate px-4 py-2 text-sm">
                 <div className="font-medium text-gray-900 hover:text-gray-600 ">
                   {projectName}
