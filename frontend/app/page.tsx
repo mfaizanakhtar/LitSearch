@@ -6,23 +6,24 @@ import { useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import Loader from "./components/utility/Loader";
 import VegaGraph from "./components/Graph/VegaGraph";
-import getState from "./state";
 import PaperDetails from "./components/PaperDetails";
 import ScrollToTop from "./components/utility/ScrollToTop";
 import axios from "axios";
 import { sortByDate } from "./helper";
 import { Paper } from "./interfaces";
+import queriesState from "./states/state";
+import projectState from "./states/projectsState";
 
 export default function Home() {
   const { data: session, status }:any = useSession({
     required:true
   });
   const [userId, setUserId] = useState(null);
-  const queries = getState((state) => state.queries);
-  const setQueries = getState((state) => state.setQueries);
-  const sortType = getState((state)=>state.sortType)
+  const {queries} = queriesState()
+  const {setQueries} = queriesState()
+  const {sortType} = queriesState()
   const [sortedPapers,setsortedPapers] = useState<Paper[]>([])
-  const getAllProjects = getState((state)=>state.getAllProjects)
+  const {getAllProjects} = projectState()
 
   useEffect(() => {
     const sessionUserId = session?.user?.id;
@@ -57,9 +58,13 @@ export default function Home() {
     }
 },[userId])
 
-  useEffect(()=>{getAllProjects(userId)},[userId])
+  useEffect(()=>{
+    if(userId){
+      getAllProjects(userId)
+    }
+  },[userId])
   
-  const detailView = getState((state)=>state.detailView)
+  const {detailView} = queriesState()
   const [isLoading, setIsLoading] = useState(false)
 
   return (

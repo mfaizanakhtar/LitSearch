@@ -1,12 +1,12 @@
 'use client'
 import React, { useEffect, useRef } from 'react';
 import { View, parse } from 'vega';
-import getState from '@/app/state';
 import { createSpec } from './graphSpec'; // Adjust the import path as needed
+import queriesState from '@/app/states/state';
 
 const VegaGraph: React.FC = () => {
   const graphRef = useRef<HTMLDivElement>(null);
-  const queries = getState((state) => state.queries);
+  const {queries} = queriesState()
   
 
   useEffect(() => {

@@ -4,20 +4,21 @@ import {Paper,Events} from '../../interfaces';
 // import { HandThumbUpIcon as HandThumbUpIconOutline,HandThumbDownIcon as HandThumbDownIconOutline} from '@heroicons/react/24/outline'
 import ThumbUpIcon from './ThumbUpIcon';
 import ThumbDownIcon from './ThumbDownIcon';
-import getState from '@/app/state';
 import { PlusCircleIcon } from '@heroicons/react/24/outline'
 import LabelText from './LabelText';
 import Loader from './Loader';
 import { useState } from 'react';
 import DropDown from './DropDown';
+import queriesState from '@/app/states/state';
+import projectState from '@/app/states/projectsState';
 
 export default function Card(paper: Paper) {
 
-    const setEvent = getState((state)=>state.setEvent)
-    const isDetailView = getState((state)=>state.isDetailView)
-    const setDetailPagePaper = getState((state)=>state.setDetailPagePaper)
-    const projects = getState((state)=>state.projects)
-    const addPaperToProject = getState((state)=>state.addPaperToProject)
+    const {setEvent} = queriesState()
+    const {isDetailView} = queriesState()
+    const {setDetailPagePaper} = queriesState()
+    const {projects} = projectState()
+    const {addPaperToProject} = projectState()
     const [isLoadingRelevant,setIsLoadingRelevant]=useState(false)
     const [relevantLoadedSize,setRelevantLoadedSize]=useState(0)
     const [isRemoved,setIsRemoved]=useState(false)

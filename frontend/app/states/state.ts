@@ -1,8 +1,8 @@
 import { create } from 'zustand'
 import axios from "axios"
-import {Events, Paper, Project, Queries, SortType} from './interfaces'
+import {Events, Paper, Project, Queries, SortType} from '../interfaces'
 
-interface State {
+interface QueriesState {
     session: string
     uid: string
     cmdOpened: boolean
@@ -10,11 +10,6 @@ interface State {
     detailPagePaper:Paper | any
     queries:Array<Queries>
     sortType:SortType
-
-    projects:Array<Project>
-    addNewProject:(project:Project,userId:any)=>void
-    getAllProjects:(userId:String|any)=>void
-    addPaperToProject:(userId:String,paperId:any,projectName:String)=>void
 
     setSortType:(sortField:'Year',sortType:'asc'|'desc'|'relevance')=>void
 
@@ -26,38 +21,13 @@ interface State {
     setDetailPagePaper : (paper:Paper)=>void
 }
 
-const getState = create<State>()((set) => ({
+const queriesState = create<QueriesState>()((set) => ({
     session: '',
     uid: '',
     cmdOpened: false,
     detailView:false,
     detailPagePaper:{},
     queries:[],
-
-    projects:[],
-    addNewProject:async(project:Project,userId:any)=>{
-        let {data}:any = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/projects/addProject`,{...project,userId})
-        if(data){
-            set((state)=>{
-                let updatedProjects:Array<Project> = [...state.projects]
-                updatedProjects.unshift(project)
-                return {projects:updatedProjects}
-            })
-        }
-    },
-    getAllProjects:async(userId:String)=>{
-        let {data}:any = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/projects/getUserProjects?userId=${userId}`)
-        set(()=>{
-            let updatedProjects:Array<Project> = data
-            return {projects:updatedProjects}
-        })
-    },
-    addPaperToProject:async(userId:String,paperId:any,projectName:String)=>{
-       let {data} = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/projects/addPaperToProject`,
-            {paperId:paperId,projectName:projectName,userId:userId}
-       )
-       console.log(data)
-    },
     sortType:{sortField:'Year',sortOrder:'relevance'},
     setSortType:(sortField:'Year',sortOrder:'asc'|'desc'|'relevance' = 'relevance')=>set(()=>{
         return {sortType:{sortField:sortField,sortOrder:sortOrder}}
@@ -156,4 +126,4 @@ const getState = create<State>()((set) => ({
     setDetailPagePaper: (paper:Paper)=>set(()=>({detailPagePaper:paper})),
 }))
 
-export default getState;
+export default queriesState;

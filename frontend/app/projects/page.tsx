@@ -11,8 +11,8 @@ import { ChevronDownIcon, ChevronRightIcon, MagnifyingGlassIcon } from '@heroico
 import Heading from '../components/utility/Heading'
 import TextInput from '../components/utility/TextInput'
 import CreateProject from './createProject'
-import getState from '../state'
 import { useSession } from 'next-auth/react'
+import projectState from '../states/projectsState'
 
 // import { Fragment, useState, } from 'react'
 // import { Dialog, Transition } from '@headlessui/react'
@@ -34,9 +34,9 @@ const Projects = () => {
     const [userId,setUserId]=useState(null)
     const [showTeam,toggleShowTeam] = useState(false)
     const [dialogOpen,setDialogOpen]=useState(false)
-    const projects = getState((state)=>state.projects)
-    const addNewProject = getState((state)=>state.addNewProject)
-    const getAllProjects = getState((state)=>state.getAllProjects)
+    const {projects} = projectState()
+    const {addNewProject} = projectState()
+    const {getAllProjects} = projectState()
 
     useEffect(() => {
         const sessionUserId = session?.user?.id;

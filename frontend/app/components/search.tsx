@@ -4,9 +4,9 @@ import { Combobox, Dialog, Transition } from '@headlessui/react';
 import { MagnifyingGlassIcon, PlusCircleIcon } from '@heroicons/react/20/solid';
 import MagGlassIcon from '../components/utility/MagGlassIcon';
 
-import getState from '../state';
 import { useSession } from 'next-auth/react';
 import DropDown from './utility/DropDown';
+import queriesState from '../states/state';
 
 
 
@@ -16,9 +16,9 @@ function classNames(...classes: string[]) {
 }
 
 export default function Search({setIsLoading}:any) {
-    const queries = getState((state)=>state.queries)
-    const searchQuery = getState((state)=>state.searchQuery)
-    const uid = getState((state) => state.uid);
+    const {queries} = queriesState()
+    const {searchQuery} = queriesState()
+    const {uid} = queriesState()
 
     const [currentQuery, setCurrentQuery] = useState('');
     const [open, setShowModal] = useState(false);
@@ -54,7 +54,7 @@ export default function Search({setIsLoading}:any) {
             })
 
     const [sortByText,setSortByText]=useState('Sort By - Relevance')
-    const setSortType = getState((state)=>state.setSortType)
+    const {setSortType} = queriesState()
 
     const sortByYear = (sortType:'asc'|'desc'|'relevance',buttonText:string) =>{
         setSortByText(`Sort By - ${buttonText}`)
