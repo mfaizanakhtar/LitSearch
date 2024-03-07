@@ -1,3 +1,5 @@
+import os
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
@@ -5,7 +7,8 @@ import backend.routers.users as users
 import backend.routers.papers as papers
 import backend.routers.projects as projects
 
-load_dotenv()  # Load environment variables
+env_path = Path(__file__).parent / 'backend/.env'
+load_dotenv(env_path)  # Load environment variables
 
 app = FastAPI()
 app.add_middleware(

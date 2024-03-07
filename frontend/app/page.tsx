@@ -32,9 +32,7 @@ export default function Home() {
   }, [session]);
 
   useEffect(()=>{
-    debugger
     if(queries && queries.length > 0){
-      debugger
       let rawPapers = queries[0].papers.map((item,index)=>({...item,arrayIndex:index})) //to preserve original index for events
       let sortedPapers:Paper[] = []
       if(sortType.sortOrder=='relevance') sortedPapers = rawPapers // keep as is
@@ -46,7 +44,7 @@ export default function Home() {
   useEffect(()=>{
     console.log(queries.length)
     if(userId && queries.length==0){
-        axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/userQueryHistory?userId=${session?.user?.id}`)
+        axios.get(`${process.env.NEXT_PUBLIC_API_URL}api/paper/userQueryHistory?userId=${session?.user?.id}`)
         .then(({data})=>{
             console.log(data)
             setQueries(data); // Update your state with the response data

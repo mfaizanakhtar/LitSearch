@@ -5,7 +5,7 @@ import { User as NextAuthUser, Account as NextAuthAccount, Profile as NextAuthPr
 
 interface signInArgs{user: NextAuthUser, account: NextAuthAccount, profile: NextAuthProfile}
 
-export const authOptions = {
+const authOptions:any = {
     providers:[
         GitHubProvider({
             clientId:process.env.GITHUB_ID!,
@@ -15,7 +15,7 @@ export const authOptions = {
     callbacks:{
         async signIn({user, account, profile}: signInArgs) {
             if (account.provider === 'github') {
-              const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/users/loginUser`,
+              const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}api/users/loginUser`,
                 {
                     userId: user.id,
                     provider: account.provider,
@@ -35,6 +35,10 @@ export const authOptions = {
     }
 };
 
-export const handler = NextAuth(authOptions)
+const handler = NextAuth(authOptions)
+
+// export default function authHandler(req: any, res: any) {
+//     return NextAuth(req, res, authOptions);
+// }
 
 export {handler as GET,handler as POST};

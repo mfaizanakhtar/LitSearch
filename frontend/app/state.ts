@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import axios from "axios"
 import {Events, Paper, Project, Queries, SortType} from './interfaces'
-import { sortByDate } from './helper'
 
 interface State {
     session: string
@@ -9,7 +8,6 @@ interface State {
     cmdOpened: boolean
     detailView:boolean
     detailPagePaper:Paper | any
-    originalQueries:Array<Queries>
     queries:Array<Queries>
     sortType:SortType
 
@@ -34,7 +32,6 @@ const getState = create<State>()((set) => ({
     cmdOpened: false,
     detailView:false,
     detailPagePaper:{},
-    originalQueries:[],
     queries:[],
 
     projects:[],
@@ -101,7 +98,7 @@ const getState = create<State>()((set) => ({
         return {queries:[...queries]}
         })
 
-        let {data}:any = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/event`,eventRequest)
+        let {data}:any = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}api/paper/event`,eventRequest)
         let relevantPapers = data?.relevantPapers?.map((paper:any)=>({...paper,journalName:paper.journal?.name}))
         if(relevantPapers){
             // const map = new Map<string, Paper>();
@@ -139,9 +136,9 @@ const getState = create<State>()((set) => ({
             queries.unshift(queriesItem)
             set(()=>({queries:[...queries]}))
             loaderCallback(false)
-            axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/search?query=${query}&userId=${userId}&isExistingQuery=true`)
+            axios.get(`${process.env.NEXT_PUBLIC_API_URL}api/paper/search?query=${query}&userId=${userId}&isExistingQuery=true`)
         }else{
-            let {data:queriesResponse} =await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/paper/search?query=${query}&userId=${userId}`)
+            let {data:queriesResponse} =await axios.get(`${process.env.NEXT_PUBLIC_API_URL}api/paper/search?query=${query}&userId=${userId}`)
             queriesResponse.papers = queriesResponse?.papers?.map((paper:any)=>({...paper,journalName:paper?.journal?.name}))
             if(queriesItemIndex!=-1){
                 let queriesItemToSwap = {...queries[queriesItemIndex],papers:queriesResponse.papers}
