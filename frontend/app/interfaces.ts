@@ -37,6 +37,7 @@ export interface SortType{
 export interface Project{
     name:string,
     desc:string,
+    detailsFetched?:boolean,
     team?:Array<{userId:String,role:String}>,
     papers?:Array<{paperId:String}>
 }

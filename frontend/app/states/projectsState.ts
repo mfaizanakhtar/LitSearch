@@ -4,13 +4,16 @@ import axios from "axios";
 
 interface ProjectState{
     projects:Array<Project>
+    selectedProject:Project|any
     addNewProject:(project:Project,userId:any)=>void
     getAllProjects:(userId:String|any)=>void
     addPaperToProject:(userId:String,paperId:any,projectName:String)=>void
+    getProjectDetails:(projectName:String,userId:String|any)=>void
 }
 
 const projectState = create<ProjectState>()((set) => ({
     projects:[],
+    selectedProject:{},
     addNewProject:async(project:Project,userId:any)=>{
         let {data}:any = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}api/projects/addProject`,{...project,userId})
         if(data){
@@ -46,6 +49,19 @@ const projectState = create<ProjectState>()((set) => ({
        )
        console.log(data)
 
+    },
+    getProjectDetails:async(projectName, userId)=> {
+        let {data} = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}api/projects/getProjectDetails?projectName=${projectName}&userId=${userId}`)
+        console.log(data)
+        set((state)=>{
+            let updatedProjects = state.projects
+            updatedProjects.forEach((project)=>{
+                if(project.name==projectName){
+                    project={...data,detailsFetched:true}
+                }
+            })
+            return {projects:updatedProjects}
+        })
     },
     
 }))

@@ -34,9 +34,8 @@ const Projects = () => {
     const [userId,setUserId]=useState(null)
     const [showTeam,toggleShowTeam] = useState(false)
     const [dialogOpen,setDialogOpen]=useState(false)
-    const {projects} = projectState()
-    const {addNewProject} = projectState()
-    const {getAllProjects} = projectState()
+    const [selectedIndex,setSelectedIndex]=useState(-1)
+    const {projects,addNewProject,getAllProjects,getProjectDetails} = projectState()
 
     useEffect(() => {
         const sessionUserId = session?.user?.id;
@@ -56,8 +55,10 @@ const Projects = () => {
         setDialogOpen(false)
     }
 
-    const getProjectDetails = (projectName:String)=>{
+    const getProjectDetail = (projectName:String,projectSelectedIndex:number)=>{
         console.log(projectName)
+        setSelectedIndex(projectSelectedIndex)
+        getProjectDetails(projectName,userId)
     }
   return (
     <>
@@ -70,8 +71,8 @@ const Projects = () => {
                 <span className='flex w-full mt-2 p-1'><ButtonPrimary clickEvent={()=>{setDialogOpen(true)}} className='w-full' btnText={<>Create New Project</>}></ButtonPrimary></span>
             <div className='m-4'>
             <ul role="list" className="mt-3 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
-            {projects.map((project)=>(
-                    <ProjectListCard clickEvent={getProjectDetails} projectName={project.name} projectDesc={project.desc}/>
+            {projects.map((project,index)=>(
+                    <ProjectListCard clickEvent={getProjectDetail} projectName={project.name} projectDesc={project.desc} cardIndex={index} isSelected={index==selectedIndex}/>
             ))}
             </ul>
             </div>
