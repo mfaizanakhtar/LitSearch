@@ -4,23 +4,40 @@ import axios from "axios";
 
 interface ProjectState{
     projects:Array<Project>
-    selectedProject:Project|any
-    addNewProject:(project:Project,userId:any)=>void
-    getAllProjects:(userId:String|any)=>void
-    addPaperToProject:(userId:String,paperId:any,projectName:String)=>void
-    getProjectDetails:(projectName:String,userId:String|any)=>void
+    selectedProject:Project
+    clearSelectedProject:()=>void
+    addNewProject:(project:Project,user:any)=>void
+    deleteUserProject:(userId:string|any,projectName:string)=>void
+    getAllProjects:(userId:string|any)=>void
+    addPaperToProject:(userId:string,paperId:any,projectName:string)=>void
+    addMemberToProjTeam:(invitedByMember:string|any,invitedMember:string,projectName:string|any)=>any
+    getProjectDetails:(projectName:string,userId:string|any)=>void
 }
 
 const projectState = create<ProjectState>()((set) => ({
     projects:[],
     selectedProject:{},
-    addNewProject:async(project:Project,userId:any)=>{
+    clearSelectedProject:()=>set(()=>({selectedProject:{}})),
+    deleteUserProject:async(userId:string,projectName:string)=>{
+        let{data}:any = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}api/projects/deleteUserProject?projectName=${projectName}&userId=${userId}`)
+        console.log(data)
+        set((state)=>{
+            let updatedProjects = state.projects
+            updatedProjects = updatedProjects.filter((project)=>(project.name!=projectName))
+            return {projects:updatedProjects,selectedProject:{}}
+        })
+    },
+    addNewProject:async(project:Project,user:any)=>{
+        let userId = user?.userId
         let {data}:any = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}api/projects/addProject`,{...project,userId})
         if(data){
             set((state)=>{
                 let updatedProjects:Array<Project> = [...state.projects]
+                let updatedSelectedProject = state.selectedProject
+                project.team=[{"name":user?.userName,"userId":userId,"role":"owner","image":user?.userImage}]
                 updatedProjects.unshift(project)
-                return {projects:updatedProjects}
+                updatedSelectedProject = project
+                return {projects:updatedProjects,selectedProject:project}
             })
         }
     },
@@ -30,6 +47,27 @@ const projectState = create<ProjectState>()((set) => ({
             let updatedProjects:Array<Project> = data
             return {projects:updatedProjects}
         })
+    },
+    addMemberToProjTeam:async(invitedByMember:String,invitedMember:String,projectName:String)=>{
+        try{
+            debugger
+            let {data}:any = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}api/projects/addUserToProject`,
+            {"projectName":projectName,"user":invitedMember})
+            set((state)=>{
+                let updatedProjects = state.projects
+                let selectedProject = state.selectedProject
+                updatedProjects.forEach((project)=>{
+                    if(project?.name==selectedProject?.name && data?.detail?.addedUser){
+                        project.team?.push({...data.detail.addedUser,role:"collaborator"})
+                        // selectedProject.team?.unshift(data.detail.addedUser)
+                    }
+                })
+                return {projects:updatedProjects}
+            })
+        }catch(ex:any){
+            return ex?.response?.data?.detail
+        }
+        
     },
     addPaperToProject:async(userId:String,paperId:any,projectName:String)=>{
         set((state)=>{
@@ -51,16 +89,33 @@ const projectState = create<ProjectState>()((set) => ({
 
     },
     getProjectDetails:async(projectName, userId)=> {
-        let {data} = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}api/projects/getProjectDetails?projectName=${projectName}&userId=${userId}`)
-        console.log(data)
+        let updatedSelectedProject:any = null
         set((state)=>{
             let updatedProjects = state.projects
             updatedProjects.forEach((project)=>{
                 if(project.name==projectName){
-                    project={...data,detailsFetched:true}
+                    if(project.detailsFetched){
+                        updatedSelectedProject = project
+                    }
                 }
             })
-            return {projects:updatedProjects}
+            if(updatedSelectedProject) return {selectedProject:updatedSelectedProject} 
+            else return{}
+
+        })
+        if(updatedSelectedProject) return
+        let {data} = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}api/projects/getProjectDetails?projectName=${projectName}&userId=${userId}`)
+        console.log(data)
+        set((state)=>{
+            let updatedProjects = state.projects
+            updatedProjects.forEach((project,index)=>{
+                if(project.name==projectName){
+                    project={...data,detailsFetched:true}
+                    updatedSelectedProject=project
+                    updatedProjects[index]=project
+                }
+            })
+            return {projects:updatedProjects,selectedProject:updatedSelectedProject}
         })
     },
     

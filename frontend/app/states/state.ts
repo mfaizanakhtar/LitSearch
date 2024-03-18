@@ -6,6 +6,7 @@ interface QueriesState {
     session: string
     uid: string
     cmdOpened: boolean
+    selectedNav:string
     detailView:boolean
     detailPagePaper:Paper | any
     queries:Array<Queries>
@@ -25,6 +26,7 @@ const queriesState = create<QueriesState>()((set) => ({
     session: '',
     uid: '',
     cmdOpened: false,
+    selectedNav:'Search',
     detailView:false,
     detailPagePaper:{},
     queries:[],

@@ -35,10 +35,10 @@ export interface SortType{
 }
 
 export interface Project{
-    name:string,
-    desc:string,
+    name?:string,
+    desc?:string,
     detailsFetched?:boolean,
-    team?:Array<{userId:String,role:String}>,
+    team?:Array<{userId:string,role:string,image?:string,name?:string,userDetails?:any}>,
     papers?:Array<{paperId:String}>
 }
 // export interface Event {

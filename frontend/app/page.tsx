@@ -13,6 +13,7 @@ import { sortByDate } from "./helper";
 import { Paper } from "./interfaces";
 import queriesState from "./states/state";
 import projectState from "./states/projectsState";
+import Header from "./components/utility/Header";
 
 export default function Home() {
   const { data: session, status }:any = useSession({
@@ -43,7 +44,6 @@ export default function Home() {
   },[JSON.stringify(queries),sortType])
 
   useEffect(()=>{
-    console.log(queries.length)
     if(userId && queries.length==0){
         axios.get(`${process.env.NEXT_PUBLIC_API_URL}api/paper/userQueryHistory?userId=${session?.user?.id}`)
         .then(({data})=>{
@@ -54,7 +54,6 @@ export default function Home() {
         .catch(error=>{
     
         })
-
     }
 },[userId])
 
@@ -69,11 +68,12 @@ export default function Home() {
 
   return (
    <>
+   <div className="fixed z-50 w-full"><Header/></div>
     <main className="w-1/3 h-full flex flex-col">
-    <div className="fixed w-1/3 z-20 bg-white pb-5 rounded-lg"><Search setIsLoading={setIsLoading}/></div>
+    <div className="fixed w-1/3 z-20 bg-white pb-5 rounded-lg mt-20"><Search setIsLoading={setIsLoading}/></div>
     <div className="mt-24">
-      {isLoading ? <div className="mt-6"><Loader/></div> : <></>}
-      <ul role="list" className="mt-6 space-y-3 px-4 sm:px-6 lg:px-8">
+      {isLoading ? <div className="mt-28"><Loader/></div> : <></>}
+      <ul role="list" className="mt-28 space-y-3 px-4 sm:px-6 lg:px-8">
         {queries.length > 0 ? 
         sortedPapers.map((paper,index) => (
           <Card key={paper.paperId} arrayIndex={paper.arrayIndex}  {...paper}  />
@@ -84,7 +84,7 @@ export default function Home() {
       <Mock />
     </main>
 
-    <aside className="fixed inset-y-0 right-0 w-2/3 flex flex-col">
+    <aside className="fixed inset-y-0 right-0 w-2/3 flex flex-col mt-20">
       {/* <Mock /> */}
       {detailView ? <PaperDetails /> : <div className="absolute z-0 fade-in"><VegaGraph /></div>}
     </aside>

@@ -72,7 +72,7 @@ export default function Card(paper: Paper) {
                         <div className='absolute right-4 bg-opacity-100'><DropDown 
                             dropDownArray={projects.map((project)=>({name:project.name,
                                 ticked:project.papers?.some(projectPaper=>projectPaper.paperId==paper.paperId),
-                                clickEvent:()=>(addPaperToProject(session?.user.id,paper.paperId,project.name))}))}                            
+                                clickEvent:()=>(addPaperToProject(session?.user.id,paper.paperId,project?.name || ''))}))}                            
                             btnHtml={<PlusCircleIcon className='h-5 w-5 cursor-pointer' ></PlusCircleIcon>}
                             heading='Add to project'
                         /></div>
