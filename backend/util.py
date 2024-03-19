@@ -19,5 +19,6 @@ def convert_to_serializable(doc):
     return doc
 
 def parse_mongo_dict(input):
+    if input is None: return None
     input["_id"]=str(input["_id"])
     return input

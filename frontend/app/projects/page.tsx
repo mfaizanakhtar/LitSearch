@@ -40,6 +40,7 @@ const Projects = () => {
 
     const [showTeam,toggleShowTeam] = useState(false)
     const [addTeamErrorMsg,setAddTeamErrorMsg] = useState(null)
+    const [createProjError,setCreateProjectError] = useState('')
     const [txtTeamInvite,setTxtTeamInvite] = useState('')
     const [addingMemberLoader,setAddingMemeberLoader] = useState(false)
 
@@ -70,12 +71,20 @@ const Projects = () => {
     }
     }, [user]);
 
-    const createProject = (projectName:any,projectDescription:any,setDialogOpen:any)=>{
-        if(!projectName) return
-        addNewProject({name:projectName,desc:projectDescription},user)
-        if(selectedIndex!=null) setSelectedIndex(selectedIndex+1)
-        console.log(projectName,projectDescription)
-        setDialogOpen(false)
+    const createProject = async (projectName:any,projectDescription:any,setDialogOpen:any)=>{
+        debugger
+        if(!projectName){
+            setCreateProjectError('Project name can not be empty')
+            return;
+        } 
+        let errorResp = await addNewProject({name:projectName,desc:projectDescription},user)
+        if(errorResp) setCreateProjectError(errorResp)
+        else{
+            setCreateProjectError('')
+            if(selectedIndex!=null) setSelectedIndex(selectedIndex+1)
+            console.log(projectName,projectDescription)
+            setDialogOpen(false)
+        }
     }
 
     const getProjectDetail = (projectName:string,projectSelectedIndex:number)=>{
@@ -103,11 +112,11 @@ const Projects = () => {
       };
   return (
     <>
-    <CreateProject dialogOpen={dialogOpen} setDialogOpen={setDialogOpen} createProject={createProject}/>
+    <CreateProject errorMsg={createProjError} dialogOpen={dialogOpen} setDialogOpen={setDialogOpen} createProject={createProject}/>
     <div className="flex flex-col h-screen overflow-hidden">
     <Header/>
     <div className="flex flex-1">
-        {/* Creating and Viewing Projects (column 1) */}
+        {/* ------------------------------Creating and Viewing Projects (column 1)---------------------------------------- */}
         <div className="w-3/12 m-4 h-screen flex flex-col">
                 {/* <Heading HeadingText='Projects'/> */}
                 <span className='flex p-1 mx-4'><ButtonPrimary clickEvent={()=>{setDialogOpen(true)}} className='w-full' btnText={<>Create New Project</>}></ButtonPrimary></span>
@@ -126,7 +135,6 @@ const Projects = () => {
             </ul>
             </div>
             {/* <Mock /> */}
-        </div>
             <ConfirmationDialog
                 isOpen={isConfirmationDialogOpen}
                 onClose={() => setConfirmationDialogState(false)}
@@ -137,10 +145,12 @@ const Projects = () => {
                 <p className="text-sm text-gray-500">Are you sure you want to delete this item? This action cannot be undone.</p>
                 </div>
             </ConfirmationDialog>
-        {/* Column 2 begin */}
+        </div>
+
+        {/*--------------------------- Column 2 begin----------------------------------------- */}
         { Object.keys(selectedProject).length > 0 ?
         <div className="w-3/4 mt-4 h-screen overflow-y-auto flex flex-col fade-in" style={{ height: 'calc(100vh - 7rem)' }}>
-            {/* Team Members */}
+            {/*--------------- Team Members--------------------- */}
             <Heading
             customHtmlPrefix={
                 <>
@@ -168,7 +178,7 @@ const Projects = () => {
                         </ul>
                     </div>
             </div>: <></> }
-            {/* Research Papers Display */}
+            {/*-------------- Research Papers Display--------------------- */}
             <span className='ml-4'><Heading HeadingText='Research Papers'/></span>
                 {selectedProject?.papers?.map((paper:any,index:number)=>(
                     <div key={index} className='m-4'>
@@ -178,7 +188,7 @@ const Projects = () => {
             {/* <Mock /> */}
         </div>
         : <></>}
-        {/* Column 2 ends */}
+        {/*-------------------- Column 2 ends---------------------- */}
     </div>
     </div>
     </>

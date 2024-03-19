@@ -3,7 +3,7 @@ import { Dialog, Transition } from '@headlessui/react'
 import { CheckIcon } from '@heroicons/react/24/outline'
 import TextInput from '../components/utility/TextInput'
 
-export default function CreateProject({dialogOpen,setDialogOpen,createProject}:{dialogOpen:boolean,setDialogOpen:any,createProject:any}) {
+export default function CreateProject({dialogOpen,setDialogOpen,createProject,errorMsg}:{dialogOpen:boolean,setDialogOpen:any,createProject:any,errorMsg:any}) {
 //   const [open, setOpen] = useState(true)
 
     const [name,setName] = useState('')
@@ -54,7 +54,7 @@ export default function CreateProject({dialogOpen,setDialogOpen,createProject}:{
                       {/* <p className="text-sm text-gray-500">
                         Lorem ipsum dolor sit amet consectetur adipisicing elit. Consequatur amet labore.
                       </p> */}
-                      <div className='mt-4'><TextInput placeholder={'Project Name'}  value={name} onChange={setName}/></div>
+                      <div className='mt-4'><TextInput errorMsg={errorMsg} placeholder={'Project Name'}  value={name} onChange={setName}/></div>
                       <div className='mt-4'><TextInput placeholder={'Project Description'} value={desc} onChange={setDesc}/></div>
                     </div>
                   </div>

@@ -6,7 +6,7 @@ interface ProjectState{
     projects:Array<Project>
     selectedProject:Project
     clearSelectedProject:()=>void
-    addNewProject:(project:Project,user:any)=>void
+    addNewProject:(project:Project,user:any)=>any
     deleteUserProject:(userId:string|any,projectName:string)=>void
     getAllProjects:(userId:string|any)=>void
     addPaperToProject:(userId:string,paperId:any,projectName:string)=>void
@@ -29,8 +29,13 @@ const projectState = create<ProjectState>()((set) => ({
     },
     addNewProject:async(project:Project,user:any)=>{
         let userId = user?.userId
-        let {data}:any = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}api/projects/addProject`,{...project,userId})
-        if(data){
+        let responseData:any=null
+        try {
+            responseData= await axios.post(`${process.env.NEXT_PUBLIC_API_URL}api/projects/addProject`,{...project,userId})
+        } catch (error:any) {
+            return error?.response?.data?.detail
+        }
+        if(responseData?.data){
             set((state)=>{
                 let updatedProjects:Array<Project> = [...state.projects]
                 let updatedSelectedProject = state.selectedProject
