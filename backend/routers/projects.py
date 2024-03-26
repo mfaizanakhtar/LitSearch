@@ -145,7 +145,8 @@ async def getProjectDetails(projectName:str,userId:str):
                                 "abstract": "$paperDetails.abstract",
                                 "citationCount": "$paperDetails.citationCount",
                                 "journalName": "$paperDetails.journalName",
-                                "title": "$paperDetails.title"
+                                "title": "$paperDetails.title",
+                                "publicationDate":"$paperDetails.publicationDate"
                             }
                         ]
                     }

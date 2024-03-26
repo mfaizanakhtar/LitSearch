@@ -6,7 +6,6 @@ interface QueriesState {
     session: string
     uid: string
     cmdOpened: boolean
-    selectedNav:string
     detailView:boolean
     detailPagePaper:Paper | any
     queries:Array<Queries>
@@ -96,31 +95,31 @@ const queriesState = create<QueriesState>()((set) => ({
     },
     searchQuery:async(query:string,userId:any,loaderCallback:any)=>{
         debugger
-        let queries:Array<Queries>=[]
-        set((state)=>{
-            queries=state.queries
+        let queriesArray:Array<Queries>=[]
+         set((state)=>{
+            queriesArray=state.queries
             return state
         })
-        let queriesItemIndex = queries.findIndex((q)=>q.query==query)
-        if(queriesItemIndex!=-1 && queries[queriesItemIndex].papers?.length>0){
-            let queriesItem:Queries = queries[queriesItemIndex]
-            queries.splice(queriesItemIndex,1)
-            queries.unshift(queriesItem)
-            set(()=>({queries:[...queries]}))
+        let queriesItemIndex = queriesArray.findIndex((q)=>q.query==query)
+        if(queriesItemIndex!=-1 && queriesArray[queriesItemIndex].papers?.length>0){
+            let queriesItem:Queries = queriesArray[queriesItemIndex]
+            queriesArray.splice(queriesItemIndex,1)
+            queriesArray.unshift(queriesItem)
+            set(()=>({queries:[...queriesArray]}))
             loaderCallback(false)
             axios.get(`${process.env.NEXT_PUBLIC_API_URL}api/paper/search?query=${query}&userId=${userId}&isExistingQuery=true`)
         }else{
             let {data:queriesResponse} =await axios.get(`${process.env.NEXT_PUBLIC_API_URL}api/paper/search?query=${query}&userId=${userId}`)
             queriesResponse.papers = queriesResponse?.papers?.map((paper:any)=>({...paper,journalName:paper?.journal?.name}))
             if(queriesItemIndex!=-1){
-                let queriesItemToSwap = {...queries[queriesItemIndex],papers:queriesResponse.papers}
-                queries.splice(queriesItemIndex,1)
-                queries.unshift(queriesItemToSwap)
+                let queriesItemToSwap = {...queriesArray[queriesItemIndex],papers:queriesResponse.papers}
+                queriesArray.splice(queriesItemIndex,1)
+                queriesArray.unshift(queriesItemToSwap)
             }else{
                 let queriesItem:Queries={query:query,papers:queriesResponse.papers}
-                queries.unshift(queriesItem)
+                queriesArray.unshift(queriesItem)
             }
-            set(()=>({queries:queries}))
+            set(()=>({queries:queriesArray}))
             loaderCallback(false)
         }
     },

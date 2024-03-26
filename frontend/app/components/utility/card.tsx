@@ -4,24 +4,26 @@ import {Paper,Events} from '../../interfaces';
 // import { HandThumbUpIcon as HandThumbUpIconOutline,HandThumbDownIcon as HandThumbDownIconOutline} from '@heroicons/react/24/outline'
 import ThumbUpIcon from './ThumbUpIcon';
 import ThumbDownIcon from './ThumbDownIcon';
-import { PlusCircleIcon } from '@heroicons/react/24/outline'
+import { PlusCircleIcon,MinusCircleIcon } from '@heroicons/react/24/outline'
 import LabelText from './LabelText';
 import Loader from './Loader';
 import { useState } from 'react';
 import DropDown from './DropDown';
-import queriesState from '@/app/states/state';
+import queriesState from '@/app/states/queriesState';
 import projectState from '@/app/states/projectsState';
+import genericState from '@/app/states/genericState';
+import ConfirmationDialog from './ConfirmationDialog';
 
 export default function Card(paper: Paper) {
 
-    const {setEvent} = queriesState()
-    const {isDetailView} = queriesState()
-    const {setDetailPagePaper} = queriesState()
-    const {projects} = projectState()
-    const {addPaperToProject} = projectState()
+    const {setEvent,isDetailView,setDetailPagePaper} = queriesState()
+    const {projects,AddRemovePaperFromProject,selectedProject} = projectState()
+    const {displayMode,userId} = genericState()
+
     const [isLoadingRelevant,setIsLoadingRelevant]=useState(false)
     const [relevantLoadedSize,setRelevantLoadedSize]=useState(0)
     const [isRemoved,setIsRemoved]=useState(false)
+    const [isConfirmationDialogOpen, setConfirmationDialogState] = useState(false);
 
     const {data : session}:any = useSession({
         required:true
@@ -48,6 +50,15 @@ export default function Card(paper: Paper) {
             setIsRemoved(false)
         }, 500);
     };
+
+    const handlePaperFromProjDelete = ()=>{
+        setIsRemoved(true)
+        setTimeout(async () => {
+            await AddRemovePaperFromProject(userId || '',paper,selectedProject?.name || '')
+            setIsRemoved(false)
+        }, 500);
+        setConfirmationDialogState(false)
+    }
     return <>
         <li className={`absolute z-10 rounded-md shadow mb-3 relative flex justify-between gap-y-6 ${isRemoved ? 'fade-out' : 'fade-in'} transform hover:scale-105 transition-transform`}>
         <div className="flex min-w-0 gap-x-4 p-4">
@@ -66,17 +77,25 @@ export default function Card(paper: Paper) {
                         <p className="mt-1 ml-2 text-xs leading-5 text-gray-500">{`${paper.publicationDate ? paper.publicationDate : ""} ${paper.publicationDate && paper.journalName ? "," : ""} ${paper.journalName ? paper.journalName : ""}`}</p>
                     </div> 
                 : <></>}
-                    <div className='mt-5 flex'>
-                        <ThumbUpIcon clickEvent={handleThumbUpClick} iconStatus={paper.upvoted ? paper.upvoted : false} />
-                        <ThumbDownIcon clickEvent={handleThumbDownClick} iconStatus={paper.downvoted ? paper.downvoted : false} />
-                        <div className='absolute right-4 bg-opacity-100'><DropDown 
-                            dropDownArray={projects.map((project)=>({name:project.name,
-                                ticked:project.papers?.some(projectPaper=>projectPaper.paperId==paper.paperId),
-                                clickEvent:()=>(addPaperToProject(session?.user.id,paper.paperId,project?.name || ''))}))}                            
-                            btnHtml={<PlusCircleIcon className='h-5 w-5 cursor-pointer' ></PlusCircleIcon>}
-                            heading='Add to project'
-                        /></div>
-                    </div>
+                    {displayMode=='query' ?
+                        <div className='mt-5 flex'>
+                            <ThumbUpIcon clickEvent={handleThumbUpClick} iconStatus={paper.upvoted ? paper.upvoted : false} />
+                            <ThumbDownIcon clickEvent={handleThumbDownClick} iconStatus={paper.downvoted ? paper.downvoted : false} />
+                            <div className='absolute right-4 bg-opacity-100'><DropDown 
+                                dropDownArray={projects.map((project)=>({name:project.name,
+                                    ticked:project.papers?.some(projectPaper=>projectPaper.paperId==paper.paperId),
+                                    clickEvent:()=>(AddRemovePaperFromProject(session?.user.id,paper,project?.name || ''))}))}                            
+                                btnHtml={<PlusCircleIcon className='h-5 w-5 cursor-pointer' ></PlusCircleIcon>}
+                                heading='Add to project'
+                            /></div>
+                        </div>  
+                    : 
+                        <div className='mt-5 flex'>
+                            <div className='absolute right-4 bg-opacity-100'>
+                                <MinusCircleIcon onClick={()=>(setConfirmationDialogState(true))} className='h-5 w-5 cursor-pointer' ></MinusCircleIcon>
+                            </div>
+                        </div>
+                    }
                     <div className='mt-5 flex'>
                         {isLoadingRelevant ? <>
                         <span className='ml-3 h-4 w-2 mr-4'><Loader /></span>
@@ -89,5 +108,17 @@ export default function Card(paper: Paper) {
         <div className="flex shrink-0 items-center gap-x-4">
         </div>
         </li>
+        <div className='z-50'>
+        <ConfirmationDialog
+                isOpen={isConfirmationDialogOpen}
+                onClose={() => setConfirmationDialogState(false)}
+                onConfirm={handlePaperFromProjDelete}
+            >
+                <h3 className="text-lg leading-6 font-medium text-gray-900">Confirm Deletion</h3>
+                <div className="mt-2">
+                <p className="text-sm text-gray-500">Are you sure you want to delete this item? This action cannot be undone.</p>
+                </div>
+        </ConfirmationDialog>
+        </div>
     </>
 }

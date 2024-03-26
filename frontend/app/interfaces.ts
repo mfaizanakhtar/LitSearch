@@ -39,7 +39,13 @@ export interface Project{
     desc?:string,
     detailsFetched?:boolean,
     team?:Array<{userId:string,role:string,image?:string,name?:string,userDetails?:any}>,
-    papers?:Array<{paperId:String}>
+    papers?:{paperId:String}[]
+}
+
+export interface userSessionObj{
+    userId:string | null,
+    userName:string | null,
+    userImage:string | null
 }
 // export interface Event {
 //     upvoted: boolean

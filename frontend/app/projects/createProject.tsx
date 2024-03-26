@@ -2,12 +2,17 @@ import { Fragment, useEffect, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { CheckIcon } from '@heroicons/react/24/outline'
 import TextInput from '../components/utility/TextInput'
+import projectState from '../states/projectsState'
+import genericState from '../states/genericState'
 
-export default function CreateProject({dialogOpen,setDialogOpen,createProject,errorMsg}:{dialogOpen:boolean,setDialogOpen:any,createProject:any,errorMsg:any}) {
+export default function CreateProject({dialogOpen,setDialogOpen}:{dialogOpen:boolean,setDialogOpen:any}) {
 //   const [open, setOpen] = useState(true)
 
     const [name,setName] = useState('')
     const [desc,setDesc] = useState('')
+    const [createProjError,setCreateProjectError] = useState('')
+    const {addNewProject} = projectState()
+    const {userObj} = genericState()
 
     useEffect(()=>{
         setTimeout(()=>{
@@ -15,9 +20,24 @@ export default function CreateProject({dialogOpen,setDialogOpen,createProject,er
         },300)
     },[dialogOpen])
 
+    const createProject = async (projectName:any,projectDescription:any)=>{
+      debugger
+      if(!projectName){
+          setCreateProjectError('Project name can not be empty')
+          return;
+      } 
+      let errorResp = await addNewProject({name:projectName,desc:projectDescription},userObj)
+      if(errorResp) setCreateProjectError(errorResp)
+      else{
+          setCreateProjectError('')
+          console.log(projectName,projectDescription)
+          setDialogOpen(false)
+      }
+    }
+
   return (
     <Transition.Root show={dialogOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-10" onClose={setDialogOpen}>
+      <Dialog as="div" className="relative z-20" onClose={setDialogOpen}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -54,7 +74,7 @@ export default function CreateProject({dialogOpen,setDialogOpen,createProject,er
                       {/* <p className="text-sm text-gray-500">
                         Lorem ipsum dolor sit amet consectetur adipisicing elit. Consequatur amet labore.
                       </p> */}
-                      <div className='mt-4'><TextInput errorMsg={errorMsg} placeholder={'Project Name'}  value={name} onChange={setName}/></div>
+                      <div className='mt-4'><TextInput errorMsg={createProjError} placeholder={'Project Name'}  value={name} onChange={setName}/></div>
                       <div className='mt-4'><TextInput placeholder={'Project Description'} value={desc} onChange={setDesc}/></div>
                     </div>
                   </div>
@@ -63,7 +83,7 @@ export default function CreateProject({dialogOpen,setDialogOpen,createProject,er
                   <button
                     type="button"
                     className="mr-2 inline-flex w-full justify-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                    onClick={() => createProject(name,desc,setDialogOpen)}
+                    onClick={() => createProject(name,desc)}
                   >
                     Create
                   </button>

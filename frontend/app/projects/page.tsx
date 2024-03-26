@@ -71,22 +71,6 @@ const Projects = () => {
     }
     }, [user]);
 
-    const createProject = async (projectName:any,projectDescription:any,setDialogOpen:any)=>{
-        debugger
-        if(!projectName){
-            setCreateProjectError('Project name can not be empty')
-            return;
-        } 
-        let errorResp = await addNewProject({name:projectName,desc:projectDescription},user)
-        if(errorResp) setCreateProjectError(errorResp)
-        else{
-            setCreateProjectError('')
-            if(selectedIndex!=null) setSelectedIndex(selectedIndex+1)
-            console.log(projectName,projectDescription)
-            setDialogOpen(false)
-        }
-    }
-
     const getProjectDetail = (projectName:string,projectSelectedIndex:number)=>{
         console.log(projectName)
         setSelectedIndex(projectSelectedIndex)
@@ -98,6 +82,7 @@ const Projects = () => {
         let isError = await addMemberToProjTeam(user?.userId,invitedMember,selectedProject?.name)
         setAddingMemeberLoader(false)
         if(isError) setAddTeamErrorMsg(isError)
+        else setAddTeamErrorMsg(null)
     }
 
     const openDeleteConfirmationPopup = (projectName:string) => {
@@ -112,7 +97,6 @@ const Projects = () => {
       };
   return (
     <>
-    <CreateProject errorMsg={createProjError} dialogOpen={dialogOpen} setDialogOpen={setDialogOpen} createProject={createProject}/>
     <div className="flex flex-col h-screen overflow-hidden">
     <Header/>
     <div className="flex flex-1">

@@ -3,7 +3,7 @@ import InfoCardSmall from './utility/InfoCardSmall'
 import InfoCardLarge from './utility/InfoCardLarge'
 import ButtonPrimary from './utility/ButtonPrimary'
 import { ArrowUturnLeftIcon } from '@heroicons/react/24/outline'
-import queriesState from '../states/state'
+import queriesState from '../states/queriesState'
 
 
 const PaperDetails = () => {

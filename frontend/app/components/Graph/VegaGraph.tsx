@@ -2,7 +2,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, parse } from 'vega';
 import { createSpec } from './graphSpec'; // Adjust the import path as needed
-import queriesState from '@/app/states/state';
+import queriesState from '@/app/states/queriesState';
 
 const VegaGraph: React.FC = () => {
   const graphRef = useRef<HTMLDivElement>(null);

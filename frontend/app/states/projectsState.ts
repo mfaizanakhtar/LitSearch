@@ -9,7 +9,7 @@ interface ProjectState{
     addNewProject:(project:Project,user:any)=>any
     deleteUserProject:(userId:string|any,projectName:string)=>void
     getAllProjects:(userId:string|any)=>void
-    addPaperToProject:(userId:string,paperId:any,projectName:string)=>void
+    AddRemovePaperFromProject:(userId:string,paperId:any,projectName:string)=>void
     addMemberToProjTeam:(invitedByMember:string|any,invitedMember:string,projectName:string|any)=>any
     getProjectDetails:(projectName:string,userId:string|any)=>void
 }
@@ -74,21 +74,24 @@ const projectState = create<ProjectState>()((set) => ({
         }
         
     },
-    addPaperToProject:async(userId:String,paperId:any,projectName:String)=>{
+    AddRemovePaperFromProject:async(userId:String,paper:any,projectName:String)=>{
+        debugger
         set((state)=>{
             let updatedProjects = state.projects
+            let selectedProject = state.selectedProject
             updatedProjects.forEach((project)=>{
                 if(project.name==projectName){
                     debugger
-                    let isExistsIndex = project.papers?.findIndex(paper=>paper.paperId=paperId)
+                    let isExistsIndex = project.papers?.findIndex(p=>p.paperId==paper?.paperId)
                     if(isExistsIndex!=undefined && isExistsIndex>-1) project.papers?.splice(isExistsIndex,1)
-                    else project.papers?.push({paperId:paperId})
+                    else project.papers?.push(paper)
+                    selectedProject = project
                 }
             })
-            return {projects:updatedProjects}
+            return {projects:updatedProjects,selectedProject:selectedProject}
        })
        let {data} = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}api/projects/addPaperToProject`,
-            {paperId:paperId,projectName:projectName,userId:userId}
+            {paperId:paper?.paperId,projectName:projectName,userId:userId}
        )
        console.log(data)
 
