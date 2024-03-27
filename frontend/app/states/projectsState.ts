@@ -5,7 +5,6 @@ import axios from "axios";
 interface ProjectState{
     projects:Array<Project>
     selectedProject:Project
-    clearSelectedProject:()=>void
     addNewProject:(project:Project,user:any)=>any
     deleteUserProject:(userId:string|any,projectName:string)=>void
     getAllProjects:(userId:string|any)=>void
@@ -17,7 +16,6 @@ interface ProjectState{
 const projectState = create<ProjectState>()((set) => ({
     projects:[],
     selectedProject:{},
-    clearSelectedProject:()=>set(()=>({selectedProject:{}})),
     deleteUserProject:async(userId:string,projectName:string)=>{
         let{data}:any = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}api/projects/deleteUserProject?projectName=${projectName}&userId=${userId}`)
         console.log(data)
@@ -75,7 +73,6 @@ const projectState = create<ProjectState>()((set) => ({
         
     },
     AddRemovePaperFromProject:async(userId:String,paper:any,projectName:String)=>{
-        debugger
         set((state)=>{
             let updatedProjects = state.projects
             let selectedProject = state.selectedProject

@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
-import TextInput from '../components/utility/TextInput'
-import Loader from '../components/utility/Loader'
-import ButtonPrimary from '../components/utility/ButtonPrimary'
-import projectState from '../states/projectsState'
-import genericState from '../states/genericState'
+import TextInput from '../utility/TextInput'
+import Loader from '../utility/Loader'
+import ButtonPrimary from '../utility/ButtonPrimary'
+import projectState from '../../states/projectsState'
+import genericState from '../../states/genericState'
 import ProjectTeamCard from './projectTeamCard'
 
 export default ()=>{
@@ -31,7 +31,7 @@ export default ()=>{
             {addingMemberLoader ? 
                 <span className='ml-2 mr-2' ><Loader/></span> 
                 :
-                <span className='w-2/6'><ButtonPrimary clickEvent={()=>(addMemeberToTeam(txtTeamInvite))} btnText={<>Invite new member</>} /></span>
+                <span className='w-2/6'><ButtonPrimary clickEvent={()=>(addMemeberToTeam(txtTeamInvite))} >Invite new member</ButtonPrimary></span>
             }
         </div> 
             <div className='m-4'>

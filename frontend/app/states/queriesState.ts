@@ -3,9 +3,6 @@ import axios from "axios"
 import {Events, Paper, Project, Queries, SortType} from '../interfaces'
 
 interface QueriesState {
-    session: string
-    uid: string
-    cmdOpened: boolean
     detailView:boolean
     detailPagePaper:Paper | any
     queries:Array<Queries>
@@ -16,30 +13,27 @@ interface QueriesState {
     searchQuery:(query:string,userId:any,loaderCallback:any)=>void
     setQueries:(queries:Array<Queries>)=>void
     setEvent:(arrayIndex:number,event:Events,callback?:any)=>void
-    // fetch: (uid: string) => void
+
     isDetailView: (status:boolean)=>void
     setDetailPagePaper : (paper:Paper)=>void
 }
 
 const queriesState = create<QueriesState>()((set) => ({
-    session: '',
-    uid: '',
-    cmdOpened: false,
-    selectedNav:'Search',
     detailView:false,
     detailPagePaper:{},
     queries:[],
     sortType:{sortField:'Year',sortOrder:'relevance'},
+
     setSortType:(sortField:'Year',sortOrder:'asc'|'desc'|'relevance' = 'relevance')=>set(()=>{
         return {sortType:{sortField:sortField,sortOrder:sortOrder}}
     }),
+
     setQueries: (queries: Array<Queries>) => set((state) => {
         let updatedPapersQueries: Array<Queries> = [...state.queries];
         updatedPapersQueries.unshift(...queries);
         return { queries: updatedPapersQueries};
     }),
     setEvent: async(arrayIndex:number,event:Events,callBack?:any)=>{
-        debugger
         let queries:Array<Queries>=[]
         let eventRequest:Events={}
         set((state)=>{

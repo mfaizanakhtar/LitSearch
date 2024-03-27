@@ -1,18 +1,16 @@
 import { useSession } from 'next-auth/react';
 import {Paper,Events} from '../../interfaces';
-// import { HandThumbUpIcon as HandThumbUpIconSolid,HandThumbDownIcon as HandThumbDownIconSolid} from '@heroicons/react/20/solid'
-// import { HandThumbUpIcon as HandThumbUpIconOutline,HandThumbDownIcon as HandThumbDownIconOutline} from '@heroicons/react/24/outline'
-import ThumbUpIcon from './ThumbUpIcon';
-import ThumbDownIcon from './ThumbDownIcon';
+import ThumbUpIcon from '../utility/ThumbUpIcon';
+import ThumbDownIcon from '../utility/ThumbDownIcon';
 import { PlusCircleIcon,MinusCircleIcon } from '@heroicons/react/24/outline'
-import LabelText from './LabelText';
-import Loader from './Loader';
+import LabelText from '../utility/LabelText';
+import Loader from '../utility/Loader';
 import { useState } from 'react';
-import DropDown from './DropDown';
+import DropDown from '../utility/DropDown';
 import queriesState from '@/app/states/queriesState';
 import projectState from '@/app/states/projectsState';
 import genericState from '@/app/states/genericState';
-import ConfirmationDialog from './ConfirmationDialog';
+import ConfirmationDialog from '../utility/ConfirmationDialog';
 
 export default function Card(paper: Paper) {
 
@@ -60,7 +58,7 @@ export default function Card(paper: Paper) {
         setConfirmationDialogState(false)
     }
     return <>
-        <li className={`absolute z-10 rounded-md shadow mb-3 relative flex justify-between gap-y-6 ${isRemoved ? 'fade-out' : 'fade-in'} transform hover:scale-105 transition-transform`}>
+        <li className={`z-10 rounded-md shadow mb-3 relative flex justify-between gap-y-6 ${isRemoved ? 'fade-out' : 'fade-in'} transform hover:scale-105 transition-transform`}>
         <div className="flex min-w-0 gap-x-4 p-4">
             {/* <img className="h-12 w-12 flex-none rounded-full bg-gray-50" src={person.imageUrl} alt="" /> */}
             <div className="min-w-0 flex-auto">
