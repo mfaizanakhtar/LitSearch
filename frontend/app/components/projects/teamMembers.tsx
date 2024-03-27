@@ -6,7 +6,7 @@ import projectState from '../../states/projectsState'
 import genericState from '../../states/genericState'
 import ProjectTeamCard from './projectTeamCard'
 
-export default ()=>{
+const TeamMembers = ()=>{
 
     const [addingMemberLoader,setAddingMemeberLoader] = useState(false)
     const [addTeamErrorMsg,setAddTeamErrorMsg] = useState(null)
@@ -44,4 +44,6 @@ export default ()=>{
     </div>
   )
 }
+
+export default TeamMembers
 

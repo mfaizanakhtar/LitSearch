@@ -12,7 +12,7 @@ const navigation = [
 //   { name: 'Company', href: '#' },
 ]
 
-export default ()=> {
+const Header = ()=> {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const pathName = usePathname();
 
@@ -97,3 +97,5 @@ export default ()=> {
     </header>
   )
 }
+
+export default Header

@@ -9,7 +9,7 @@ interface ConfirmationDialogProps {
     children: React.ReactNode; 
   }
   
-export default ({ isOpen, onClose, onConfirm, children}:ConfirmationDialogProps) => {
+const ConfirmationDialog = ({ isOpen, onClose, onConfirm, children}:ConfirmationDialogProps) => {
 
   return (
     <>
@@ -41,3 +41,5 @@ export default ({ isOpen, onClose, onConfirm, children}:ConfirmationDialogProps)
     </>
   );
 };
+
+export default ConfirmationDialog
