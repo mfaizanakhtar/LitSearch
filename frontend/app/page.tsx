@@ -2,11 +2,10 @@
 import Mock from "./components/utility/mock";
 import Card from "./components/projects/card";
 import Search from "./components/queries/search";
-import { useState, useEffect, useRef } from 'react'
-import { useSession } from 'next-auth/react'
+import { useState, useEffect } from 'react'
 import Loader from "./components/utility/Loader";
 import VegaGraph from "./components/Graph/VegaGraph";
-import PaperDetails from "./components/queries/PaperDetails";
+import PaperDetails from "./components/queries/paperDetails";
 import ScrollToTop from "./components/utility/ScrollToTop";
 import axios from "axios";
 import { sortByDate } from "./helper";
@@ -15,28 +14,15 @@ import queriesState from "./states/queriesState";
 import projectState from "./states/projectsState";
 import genericState from "./states/genericState";
 import TeamMembers from "./components/projects/teamMembers";
+import UserSession from "./components/utility/UserSession";
 
 export default function Home() {
-  const { data: session, status }:any = useSession({
-    required:true
-  });
+
   const [sortedPapers,setsortedPapers] = useState<Paper[]>([])
 
   const {queries,setQueries,sortType} = queriesState()
   const {getAllProjects,selectedProject} = projectState()
-  const {userId,setUserId,userObj,setUserObj,displayMode} = genericState()
-
-  useEffect(() => {
-    if(!userObj?.userId){
-        const sessionUserId = session?.user?.id;
-        const sessionUserImage = session?.user?.image
-        const sessionUserName = session?.user?.name
-        if (sessionUserId) {
-          setUserId(sessionUserId);
-          setUserObj({userId:sessionUserId,userName:sessionUserName,userImage:sessionUserImage})
-        }
-    }
-  }, [session]);
+  const {userId,displayMode} = genericState()
 
   useEffect(()=>{
       let rawPapers:any[]=[];
@@ -57,7 +43,7 @@ export default function Home() {
   useEffect(()=>{
     if(userId){
       if(queries.length==0){
-          axios.get(`${process.env.NEXT_PUBLIC_API_URL}api/paper/userQueryHistory?userId=${session?.user?.id}`)
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}api/paper/userQueryHistory?userId=${userId}`)
           .then(({data})=>{
               console.log(data)
               setQueries(data); // Update your state with the response data
@@ -78,6 +64,7 @@ export default function Home() {
   return (
    <>
     <main className="w-1/3 h-full flex flex-col">
+    <UserSession></UserSession>
     <div className="fixed w-1/3 z-20 bg-white pb-5 rounded-lg"><Search setIsLoading={setIsLoading}/></div>
     <div className="mt-24">
       {isLoading ? <div className="mt-10"><Loader/></div> : <></>}

@@ -1,4 +1,3 @@
-import { useSession } from 'next-auth/react';
 import {Paper,Events} from '../../interfaces';
 import ThumbUpIcon from '../utility/ThumbUpIcon';
 import ThumbDownIcon from '../utility/ThumbDownIcon';
@@ -22,10 +21,6 @@ export default function Card(paper: Paper) {
     const [relevantLoadedSize,setRelevantLoadedSize]=useState(0)
     const [isRemoved,setIsRemoved]=useState(false)
     const [isConfirmationDialogOpen, setConfirmationDialogState] = useState(false);
-
-    const {data : session}:any = useSession({
-        required:true
-      })
     
     const detailViewclick = () => {
         isDetailView(true)
@@ -34,8 +29,10 @@ export default function Card(paper: Paper) {
 
     const handleThumbUpClick = async () => {
         setIsLoadingRelevant(true)
-        let event:Events={type:'upvoted',userId:session?.user.id}
-        await setEvent(paper?.arrayIndex ? paper.arrayIndex : 0,event,setRelevantLoadedSize)
+        if(userId){
+            let event:Events={type:'upvoted',userId:userId}
+            await setEvent(paper?.arrayIndex ? paper.arrayIndex : 0,event,setRelevantLoadedSize)
+        }
         setIsLoadingRelevant(false)
 
     };
@@ -43,7 +40,7 @@ export default function Card(paper: Paper) {
     const handleThumbDownClick = async () => {
         setIsRemoved(true)
         setTimeout(async () => {
-            let event:Events={type:'downvoted',userId:session?.user.id}
+            let event:Events={type:'downvoted',userId:userId || undefined}
             await setEvent(paper.arrayIndex ? paper.arrayIndex : 0,event)
             setIsRemoved(false)
         }, 500);
@@ -52,7 +49,7 @@ export default function Card(paper: Paper) {
     const handlePaperFromProjDelete = ()=>{
         setIsRemoved(true)
         setTimeout(async () => {
-            await AddRemovePaperFromProject(userId || '',paper,selectedProject?.name || '')
+            userId && selectedProject?.name ? await AddRemovePaperFromProject(userId,paper,selectedProject.name) : ''
             setIsRemoved(false)
         }, 500);
         setConfirmationDialogState(false)
@@ -82,7 +79,7 @@ export default function Card(paper: Paper) {
                             <div className='absolute right-4 bg-opacity-100'><DropDown 
                                 dropDownArray={projects.map((project)=>({name:project.name,
                                     ticked:project.papers?.some(projectPaper=>projectPaper.paperId==paper.paperId),
-                                    clickEvent:()=>(AddRemovePaperFromProject(session?.user.id,paper,project?.name || ''))}))}                            
+                                    clickEvent:()=>(userId && project?.name ? AddRemovePaperFromProject(userId,paper,project.name) : '')}))}                            
                                 btnHtml={<PlusCircleIcon className='h-5 w-5 cursor-pointer' ></PlusCircleIcon>}
                                 heading='Add to project'
                             /></div>

@@ -4,9 +4,9 @@ import { ArrowUturnLeftIcon } from '@heroicons/react/24/outline'
 import queriesState from '../../states/queriesState'
 
 
-const PaperDetails = () => {
+export default () => {
     const {isDetailView,detailPagePaper:paper} = queriesState()
-    
+
     return <>
     <div className="bg-gray-50 p-5 w-full h-full border-gray-900 mt-4 mb-4 mr-4 rounded-lg fade-in">
 
@@ -29,5 +29,3 @@ const PaperDetails = () => {
     </div>
 </>
 }
-
-export default PaperDetails

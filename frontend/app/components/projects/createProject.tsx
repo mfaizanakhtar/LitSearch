@@ -1,5 +1,5 @@
-import { Fragment, useEffect, useState } from 'react'
-import { Dialog, Transition } from '@headlessui/react'
+import { useEffect, useState } from 'react'
+import { Dialog } from '@headlessui/react'
 import TextInput from '../utility/TextInput'
 import projectState from '../../states/projectsState'
 import genericState from '../../states/genericState'
