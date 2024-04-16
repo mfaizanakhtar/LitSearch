@@ -14,7 +14,9 @@ export interface Paper {
     arrayIndex?:number,
     index?:number,
     upvoted?:boolean,
-    downvoted?:boolean
+    downvoted?:boolean,
+    references:{paperId:string}[],
+    citations:{paperId:string}[]
 }
 
 export interface User {
@@ -38,7 +40,7 @@ export interface Project{
     name?:string,
     desc?:string,
     detailsFetched?:boolean,
-    team?:Array<{userId:string,role:string,image?:string,name?:string,userDetails?:any}>,
+    team?:{userId:string,role:string,image?:string,name?:string,userDetails?:any}[],
     papers?:{paperId:String}[]
 }
 

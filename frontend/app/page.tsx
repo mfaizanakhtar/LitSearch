@@ -15,12 +15,14 @@ import projectState from "./states/projectsState";
 import genericState from "./states/genericState";
 import TeamMembers from "./components/projects/teamMembers";
 import UserSession from "./components/utility/UserSession";
+import Graph from "./components/flowGraph/graph";
+import GraphD3 from "./components/d3Graph/graphD3";
 
 export default function Home() {
 
-  const [sortedPapers,setsortedPapers] = useState<Paper[]>([])
+  // const [sortedPapers,setsortedPapers] = useState<Paper[]>([])
 
-  const {queries,setQueries,sortType} = queriesState()
+  const {queries,setQueries,sortType,setSortedPapers,sortedPapers} = queriesState()
   const {getAllProjects,selectedProject} = projectState()
   const {userId,displayMode} = genericState()
 
@@ -37,7 +39,7 @@ export default function Home() {
       let sortedPapers:Paper[] = []
       if(sortType.sortOrder=='relevance') sortedPapers = rawPapers // keep as is
       else sortedPapers = sortByDate(rawPapers,sortType.sortOrder) //sort here
-      setsortedPapers(sortedPapers)
+      setSortedPapers(sortedPapers)
   },[selectedProject.papers?.length,JSON.stringify(queries),sortType,displayMode])
 
   useEffect(()=>{
@@ -62,6 +64,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
 
   return (
+    // <Graph></Graph>
    <>
     <main className="w-1/3 h-full flex flex-col">
     <UserSession></UserSession>
@@ -83,8 +86,12 @@ export default function Home() {
       {detailView ? 
         <PaperDetails /> 
       :
-        displayMode=='project' ? <TeamMembers /> :  <div className="absolute z-0 fade-in"><VegaGraph /></div>}
+      <div className="absolute z-0 fade-in"><GraphD3 /></div>
+         }
     </aside>
+    {/*  displayMode=='project' ? <div className="absolute z-0 fade-in"><Graph /></div> :  <div className="absolute z-0 fade-in"><Graph /></div>} */}
+    {/* displayMode=='project' ? <TeamMembers /> :  <div className="absolute z-0 fade-in"><VegaGraph /></div>} */}
+
     <ScrollToTop></ScrollToTop>
     </>
   )
