@@ -26,18 +26,18 @@ const VegaGraph: React.FC = () => {
   //     }).run();
   //   }
   // }, [queries]);
-  useEffect(() => {
-    if (graphRef.current && nodesAndLinks.length>0 && nodesAndLinks[0]?.values.length > 0) {
+  // useEffect(() => {
+  //   if (graphRef.current && nodesAndLinks.length>0 && nodesAndLinks[0]?.values.length > 0) {
 
-      const vegaSpec = createDirectedGraph(nodesAndLinks)
-      // @ts-ignore
-      const view = new View(parse(vegaSpec), {
-        renderer: 'svg',  // Specify SVG rendering
-        container: graphRef.current,
-        hover: true
-      }).run();
-    }
-  }, [nodesAndLinks]);
+  //     const vegaSpec = createDirectedGraph(nodesAndLinks)
+  //     // @ts-ignore
+  //     const view = new View(parse(vegaSpec), {
+  //       renderer: 'svg',  // Specify SVG rendering
+  //       container: graphRef.current,
+  //       hover: true
+  //     }).run();
+  //   }
+  // }, [nodesAndLinks]);
 
   return <div ref={graphRef} />;
 };
