@@ -23,7 +23,7 @@ export const createSpec=(data:any)=>{
     return {
         "$schema": "https://vega.github.io/schema/vega/v5.json",
         "width": 800,
-        "height": 700,
+        "height": 650,
         "padding": 20,
         
         "data": data,

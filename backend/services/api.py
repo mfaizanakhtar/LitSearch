@@ -18,7 +18,7 @@ async def fetch_references_citation(paperId:str):
     return simplified_paper_obj
 
 async def get_search_result(query:str):
-        SEARCH_URL=f'{SEMANTIC_SCHOLAR_BASEURL}/search?fields={FIELDS}&query={query.replace(" ", "%20")}&limit={LIMIT}&offset={OFFSET}'
+        SEARCH_URL=f'{SEMANTIC_SCHOLAR_BASEURL}/search?fields={FIELDS},references,citations&query={query.replace(" ", "%20")}&limit={LIMIT}&offset={OFFSET}'
         response = requests.get(SEARCH_URL,headers={'x-api-key':'IwS2rC34Rm2PvIG17qnhv8IUIm2z4dPv967WR9pF'})
         print(f'semantic scholar response: {response.json()}')
         return response

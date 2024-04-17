@@ -28,7 +28,8 @@ def emit(event_type: str, event_data) -> Future:
 
 def handle_downvote(event_data):
     request:Event = event_data['request']
-    updatedIndex=-999999999999+time.time()
+    timestamp_ms = int(time.time() * 1000)
+    updatedIndex=-999999999999+timestamp_ms
     searchTermMongoUpdate={"$set":{ "papers.$[elem].downvoted": request.data, 
                                     "papers.$[elem].upvoted": not request.data,
                                     "papers.$[elem].index":updatedIndex} }

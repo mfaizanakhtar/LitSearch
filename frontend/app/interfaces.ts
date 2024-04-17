@@ -14,7 +14,10 @@ export interface Paper {
     arrayIndex?:number,
     index?:number,
     upvoted?:boolean,
-    downvoted?:boolean
+    downvoted?:boolean,
+    isHovered?:boolean,
+    references:{paperId:string}[],
+    citations:{paperId:string}[]
 }
 
 export interface User {
@@ -32,6 +35,20 @@ export interface Events{
 export interface SortType{
     sortField?:'Year',
     sortOrder?:'asc'|'desc'|'relevance'
+}
+
+export interface Project{
+    name?:string,
+    desc?:string,
+    detailsFetched?:boolean,
+    team?:{userId:string,role:string,image?:string,name?:string,userDetails?:any}[],
+    papers?:{paperId:String}[]
+}
+
+export interface userSessionObj{
+    userId:string | null,
+    userName:string | null,
+    userImage:string | null
 }
 // export interface Event {
 //     upvoted: boolean

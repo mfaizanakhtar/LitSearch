@@ -16,6 +16,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
+    <>
     <html className="h-full bg-white" lang="en">
       <body className={inter.className.concat(" h-full")}>
         <AuthProvider>
@@ -23,5 +24,6 @@ export default function RootLayout({
         </AuthProvider>
       </body>
     </html>
+    </>
   )
 }
