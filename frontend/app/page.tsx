@@ -47,7 +47,6 @@ export default function Home() {
       if(queries.length==0){
           axios.get(`${process.env.NEXT_PUBLIC_API_URL}api/paper/userQueryHistory?userId=${userId}`)
           .then(({data})=>{
-              console.log(data)
               setQueries(data); // Update your state with the response data
             setIsLoading(false)
           })
@@ -74,7 +73,7 @@ export default function Home() {
       <ul role="list" className="mt-5 space-y-3 px-4 sm:px-6 lg:px-8">
         {queries.length > 0 ? 
         sortedPapers.map((paper) => (
-          <Card key={paper.paperId} arrayIndex={paper?.arrayIndex}  {...paper}  />
+          <Card key={paper.paperId} {...paper}  />
         )) 
         : <></>}
       </ul>

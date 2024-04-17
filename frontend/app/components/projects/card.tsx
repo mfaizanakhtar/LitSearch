@@ -55,7 +55,7 @@ export default function Card(paper: Paper) {
         setConfirmationDialogState(false)
     }
     return <>
-        <li className={`z-10 rounded-md shadow mb-3 relative flex justify-between gap-y-6 ${isRemoved ? 'fade-out' : 'fade-in'} transform hover:scale-105 transition-transform`}>
+        <li id={paper.paperId} className={`z-10 rounded-md shadow mb-3 relative flex justify-between gap-y-6 ${isRemoved ? 'fade-out' : 'fade-in'} transform ${paper.isHovered ? 'scale-105 transition-transform border-2 border-primary' : 'scale-100 transition-transform'} hover:scale-105 transition-transform`}>
         <div className="flex min-w-0 gap-x-4 p-4">
             {/* <img className="h-12 w-12 flex-none rounded-full bg-gray-50" src={person.imageUrl} alt="" /> */}
             <div className="min-w-0 flex-auto">

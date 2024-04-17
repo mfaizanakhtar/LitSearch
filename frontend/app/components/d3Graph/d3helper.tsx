@@ -2,8 +2,9 @@ import * as d3 from 'd3';
 
 interface data{
     id:string,
-    x:number,
-    y:number
+    x?:number,
+    y?:number,
+    actualYear?:string
 }
 
 interface connections{
@@ -19,6 +20,8 @@ export class D3LitGraph{
     private nodeRadius:number = 5;
     private g: d3.Selection<SVGGElement, unknown, null, undefined> | undefined;
 
+    private xAndYRange:{xMin:number,yMin:number,xMax:number,yMax:number};
+
     private xScale: d3.ScaleLinear<number, number, never> | undefined
     private yScale: d3.ScaleLinear<number, number, never> | undefined
 
@@ -28,16 +31,17 @@ export class D3LitGraph{
     private pathSelection:d3.Selection<SVGPathElement, {
         source: {
             id: string;
-            x: number;
-            y: number;
+            x?: number;
+            y?: number;
         } | undefined;
         target: {
             id: string;
-            x: number;
-            y: number;
+            x?: number;
+            y?: number;
         } | undefined;
         id: string;
     }, SVGGElement, unknown> | undefined
+    private allNodes:d3.Selection<SVGCircleElement, data, SVGGElement, unknown> | undefined
     private toolTip:d3.Selection<null, unknown, null, undefined> | undefined
 
     pathColourInitial:string = "#d3d3d3"
@@ -46,19 +50,124 @@ export class D3LitGraph{
     nodeHoverBorder:string = "#3b32d1"
     pathColourHover:string ="black"
 
+    hoverFunction!: (id:string) => void | undefined; 
+    hoverRevertFunction!: (id:string) => void | undefined;
 
-    constructor(d3ContainerRef:React.MutableRefObject<null>,data:data[],conenctions:connections[],toolTipRef?:React.MutableRefObject<null>,width?:number,height?:number){
+
+
+    constructor(d3ContainerRef:React.MutableRefObject<null>,data:data[],conenctions:connections[],
+        toolTipRef?:React.MutableRefObject<null>,
+        hoverFunction?:(id:string)=>void,hoverRevertFunction?:(id:string)=>void,
+        width?:number,height?:number){
+
         this.d3Container = d3ContainerRef
         this.data = data
         this.connections = conenctions
         if(width) this.containerWidth = width
         if(height) this.containerHeight = height
+        if(hoverFunction) this.hoverFunction=hoverFunction
+        if(hoverRevertFunction) this.hoverRevertFunction=hoverRevertFunction
+        this.xAndYRange =this.setMinAndMax(data)
 
         this.createD3Graph()
         this.createPaths()
         if(toolTipRef) this.createToolTip(toolTipRef)
         this.createNodes()
-        this.createNodesText()
+        // this.createNodesText()
+        this.addEventListenerToCards()
+    }
+
+    private addEventListenerToCards = () =>{
+        let mouseOverByIdFunction = this.mouseOverByIdFunction
+        let mouseOutByIdFunction = this.mouseOutByIdFunction
+
+        this.data.forEach((element)=>{
+            let htmlElement = document.getElementById(element.id)
+            htmlElement?.addEventListener('mouseover', function() {
+                mouseOverByIdFunction(element.id,true);  // Replace 'desiredNodeId' with the actual ID
+            });
+
+            htmlElement?.addEventListener('mouseout', function() {
+                mouseOutByIdFunction(element.id,true);  // Replace 'desiredNodeId' with the actual ID
+            });
+        })
+    }
+
+    private mouseOutByIdFunction = (id:string,isCardEvent?:boolean) => {
+
+        this.allNodes?.each(function(p){
+            if(p?.id==id){
+                d3.select(this)
+                .style("stroke-width", 1)
+                .style("stroke", "gray"); // Revert node border color
+            }
+        })        
+      
+      // Revert connected paths
+      if(this.pathSelection){
+        this.pathSelection.each(function(p) {
+            if (p?.source?.id === id || p?.target?.id === id) {
+              d3.select(this)
+                .attr('stroke', '#d3d3d3')
+                .attr('marker-end', 'url(#arrowhead-normal)');
+            }
+          });
+      }
+
+      //revert highlight
+      if(!isCardEvent)this.hoverRevertFunction(id)
+    }
+
+    private mouseOverByIdFunction = (id:string,isCardEvent?:boolean) => {
+        debugger
+        let pathColourHover = this.pathColourHover
+        let nodeHoverColour = this.nodeHoverColour
+        let nodeHoverBorder = this.nodeHoverBorder
+
+        this.allNodes?.each(function(p){
+            if(p?.id==id){
+                d3.select(this)
+                .style("fill",nodeHoverColour)
+                .style("stroke-width", 3)
+                .style("stroke", nodeHoverBorder); // Change node border color on hover
+            }
+        })
+        // Highlight connected paths
+        if(this.pathSelection){
+          this.pathSelection.each(function(p) {
+              if (p?.source?.id === id || p?.target?.id === id) {
+                d3.select(this)
+                  .attr('stroke', pathColourHover)
+                  .attr('marker-end', 'url(#arrowhead-hover)');
+              }
+            });
+        }
+          if(!isCardEvent) this.hoverFunction(id)
+    }
+    public getGraphRef = () =>{
+        return this.g;
+    }
+
+    private setMinAndMax = (data:data[]) =>{
+       return data.reduce((values, node) => {
+            if (node.x !== undefined) {
+                if (node.x < values.xMin) {
+                    values.xMin = node.x;
+                }
+                if (node.x > values.xMax) {
+                    values.xMax = node.x;
+                }
+            }
+            if (node.y !== undefined) {
+                if (node.y < values.yMin && node.y!=0) {
+                    values.yMin = node.y;
+                }
+                if (node.y > values.yMax) {
+                    values.yMax = node.y;
+                }
+            }
+            return values;
+        }, {xMin:Infinity,xMax:0,yMin:Infinity,yMax:0});
     }
 
     private createD3Graph = () =>{
@@ -69,9 +178,9 @@ export class D3LitGraph{
         const margin = { top: 20, right: 20, bottom: 30, left: 40 },
         width = +svg.attr("width") - margin.left - margin.right,
         height = +svg.attr("height") - margin.top - margin.bottom;
-        
-        this.xScale = d3.scaleLinear().domain([0, 100]).range([0, width]);
-        this.yScale = d3.scaleLinear().domain([2015, 2021]).range([height, 0]);
+        console.log(this.xAndYRange)
+        this.xScale = d3.scaleLinear().domain([this.xAndYRange.xMin, this.xAndYRange.xMax]).range([0, width]);
+        this.yScale = d3.scaleLinear().domain([this.xAndYRange.yMin, this.xAndYRange.yMax]).range([height, 0]);
         
         this.g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
         
@@ -185,8 +294,12 @@ export class D3LitGraph{
             const nodeHoverBorder = this.nodeHoverBorder
             const pathColourHover = this.pathColourHover
             const tooltip = this.toolTip
+            const hoverFunction = this.hoverFunction
+            const hoverRevertFunction = this.hoverRevertFunction
+            const mouseOverByIdFunction = this.mouseOverByIdFunction
+            const mouseOutByIdFunction = this.mouseOutByIdFunction
 
-        this.g.selectAll(".node")
+        this.allNodes = this.g.selectAll(".node")
             .data(this.data)
             .enter().append("circle")
             .attr("class", "node")
@@ -200,47 +313,37 @@ export class D3LitGraph{
             .style("stroke-width", 1)
             .style("cursor", "pointer")
             .on("mouseover", function(event,d) {
+                //--tooltip Code begin--//
               tooltip.transition()
               .duration(200)
               .style("opacity", 0.9)
-              tooltip.html("Citations: " + d.x + "<br/>Year: " + d.y)
-              .style("left", (event.pageX - 450) + "px")
-              .style("top", (event.pageY - 100) + "px");
-  
-              
-              d3.select(this)
-                .style("fill",nodeHoverColour)
-                .style("stroke-width", 3)
-                .style("stroke", nodeHoverBorder); // Change node border color on hover
-              
-              // Highlight connected paths
-              if(pathSelection){
-                pathSelection.each(function(p) {
-                    if (p?.source?.id === d.id || p?.target?.id === d.id) {
-                      d3.select(this)
-                        .attr('stroke', pathColourHover)
-                        .attr('marker-end', 'url(#arrowhead-hover)');
-                    }
-                  });
-              }
+              tooltip.html("Citations: " + d.x + "<br/>Year: " + (d.actualYear ? d.actualYear : d.y))
+              .style("left", (event.clientX - 450) + "px")
+              .style("top", (event.clientY - 100) + "px");
+                //--tooltip code end--//
+                mouseOverByIdFunction(d.id)
+
             })
             .on("mouseout", function(event,d) {
               tooltip.style("opacity", 0); // Hide tooltip
-  
-              d3.select(this)
-                .style("stroke-width", 1)
-                .style("stroke", "gray"); // Revert node border color
+              mouseOutByIdFunction(d.id)
+            //   d3.select(this)
+            //     .style("stroke-width", 1)
+            //     .style("stroke", "gray"); // Revert node border color
               
-              // Revert connected paths
-              if(pathSelection){
-                pathSelection.each(function(p) {
-                    if (p?.source?.id === d.id || p?.target?.id === d.id) {
-                      d3.select(this)
-                        .attr('stroke', '#d3d3d3')
-                        .attr('marker-end', 'url(#arrowhead-normal)');
-                    }
-                  });
-              }
+            //   // Revert connected paths
+            //   if(pathSelection){
+            //     pathSelection.each(function(p) {
+            //         if (p?.source?.id === d.id || p?.target?.id === d.id) {
+            //           d3.select(this)
+            //             .attr('stroke', '#d3d3d3')
+            //             .attr('marker-end', 'url(#arrowhead-normal)');
+            //         }
+            //       });
+            //   }
+
+            //   //revert highlight
+            //   hoverRevertFunction(d.id)
             });
         }
     }

@@ -15,6 +15,7 @@ export interface Paper {
     index?:number,
     upvoted?:boolean,
     downvoted?:boolean,
+    isHovered?:boolean,
     references:{paperId:string}[],
     citations:{paperId:string}[]
 }

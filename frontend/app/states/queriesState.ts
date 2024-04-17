@@ -9,7 +9,7 @@ interface QueriesState {
     queries:Array<Queries>
     sortType:SortType
     sortedPapers:Paper[],
-    nodesAndLinks:any
+    nodesAndLinks:{nodes:{id:string,x?:number,y?:number,actualYear?:string}[],links:{source:string,target:string,type:string}[]}
 
     setSortType:(sortField:'Year',sortType:'asc'|'desc'|'relevance')=>void
     setSortedPapers:(paper:Paper[])=>void
@@ -20,6 +20,9 @@ interface QueriesState {
 
     isDetailView: (status:boolean)=>void
     setDetailPagePaper : (paper:Paper)=>void
+
+    highlightAndScrollToPaper : (paperId:string)=>void
+    revertHightLight:(paperId:string)=>void
 }
 
 const queriesState = create<QueriesState>()((set) => ({
@@ -28,48 +31,120 @@ const queriesState = create<QueriesState>()((set) => ({
     queries:[],
     sortType:{sortField:'Year',sortOrder:'relevance'},
     sortedPapers:[],
-    nodesAndLinks:[],
+    nodesAndLinks:{nodes:[],links:[]},
+    highlightAndScrollToPaper: (paperId) =>set((state)=>{
+        const SortedPapers = state.sortedPapers
+        const updatedSortedPapers = SortedPapers.map((paper)=>(paper.paperId==paperId ? {...paper,isHovered:true} : paper))
+        //--scroll code--//
+        const element = document.getElementById(paperId);
+        // if (element) {
+        //     element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // }
+        if (element) {
+            const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+            const offsetPosition = elementPosition - 130; //offset for header
+        
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth'
+            });
+          }
+        return {sortedPapers:updatedSortedPapers}
+    }) ,
+    revertHightLight:(paperId)=>set((state)=>{
+        const SortedPapers = state.sortedPapers
+        const updatedSortedPapers = SortedPapers.map((paper)=>(paper.paperId==paperId ? {...paper,isHovered:false} : paper))
+        return {sortedPapers:updatedSortedPapers}
+    }),
     setSortedPapers:(sortedPapers:Paper[])=>set(()=>{
         let links:any=[]
-        let papersMap:any={}
+        let papersMap:{ [key: string]: Paper }={}
 
         sortedPapers.forEach((paper)=>{
             papersMap[paper.paperId] = paper
         })
         
         let linksAdded = new Set() // Keep record if link is created either by reference/citations
-        let nodesConnected = new Set() // keep record of nodes that are connected so that notConnected can be provided x,y
 
         for(let paper of sortedPapers as Paper[]){
             for(let paperRef of paper.references || []){
                 let sourceDestConcat=paperRef.paperId+paper.paperId //for record keeping insertion of link
                 if(papersMap[paperRef.paperId] && !linksAdded.has(sourceDestConcat)){ //check if any reference paper is already in our paperList and check link does not already exist
-                    links.push({"source":paperRef.paperId,"target":paper.paperId,"type":"references",strength:1})
+                    links.push({"source":paperRef.paperId,"target":paper.paperId,"type":"references"})
                     linksAdded.add(sourceDestConcat)
-                    nodesConnected.add(paperRef.paperId)
-                    nodesConnected.add(paper.paperId)
                 }
             }
             for(let paperCitation of paper.citations || []){
                 let sourceDestConcat=paper.paperId+paperCitation.paperId //for record keeping insertion of link
                 if(papersMap[paperCitation.paperId] && !linksAdded.has(sourceDestConcat)){ //check if any citation paper is already in our paperList and check link does not already exist
-                    links.push({"source":paper.paperId,"target":paperCitation.paperId,"type":"citations",strength:0})
+                    links.push({"source":paper.paperId,"target":paperCitation.paperId,"type":"citations"})
                     linksAdded.add(sourceDestConcat)
-                    nodesConnected.add(paperCitation.paperId)
-                    nodesConnected.add(paper.paperId)
                 }
             }
         }
-        let x=10,y=0
-        let nodes:{id:string,x?:number,y?:number}[] = Object.values(papersMap).map((paper:any)=>{
-            return nodesConnected.has(paper.paperId) ? 
-            {id:paper.paperId,title:paper.title} 
-            : 
-            {id:paper.paperId,title:paper.title.substring(0,15)+'...',x:x,y:y=y+12}
+        const minYear = Object.values(papersMap).reduce((minYear, paper) => {
+            // Check if publicationDate exists and compare it with the current minYear found.
+            const date = new Date(paper.publicationDate);
+            let year = date.getFullYear(); // year is a number
+            if (paper.publicationDate && (minYear === 0 || year < minYear)) {
+                minYear = year;
+            }
+            return minYear;
+        }, 0);
+
+        let nodes:{id:string,x:number,y:number,actualYear?:string}[] = Object.values(papersMap).map((paper:any)=>{
+            let year=minYear
+            if(paper.publicationDate){
+                const date = new Date(paper.publicationDate);
+                year = date.getFullYear(); // year is a number
+                return {id:paper.paperId,x:paper.citationCount,y:year} 
+            }
+            return {id:paper.paperId,x:paper.citationCount,y:year,actualYear:'No Data'}
         })
         let nodesAndLinks = {nodes:nodes,links:links}
         return {sortedPapers:sortedPapers,nodesAndLinks:nodesAndLinks}
     }),
+    // setSortedPapers:(sortedPapers:Paper[])=>set(()=>{
+    //     let links:any=[]
+    //     let papersMap:any={}
+
+    //     sortedPapers.forEach((paper)=>{
+    //         papersMap[paper.paperId] = paper
+    //     })
+        
+    //     let linksAdded = new Set() // Keep record if link is created either by reference/citations
+    //     let nodesConnected = new Set() // keep record of nodes that are connected so that notConnected can be provided x,y
+
+    //     for(let paper of sortedPapers as Paper[]){
+    //         for(let paperRef of paper.references || []){
+    //             let sourceDestConcat=paperRef.paperId+paper.paperId //for record keeping insertion of link
+    //             if(papersMap[paperRef.paperId] && !linksAdded.has(sourceDestConcat)){ //check if any reference paper is already in our paperList and check link does not already exist
+    //                 links.push({"source":paperRef.paperId,"target":paper.paperId,"type":"references",strength:1})
+    //                 linksAdded.add(sourceDestConcat)
+    //                 nodesConnected.add(paperRef.paperId)
+    //                 nodesConnected.add(paper.paperId)
+    //             }
+    //         }
+    //         for(let paperCitation of paper.citations || []){
+    //             let sourceDestConcat=paper.paperId+paperCitation.paperId //for record keeping insertion of link
+    //             if(papersMap[paperCitation.paperId] && !linksAdded.has(sourceDestConcat)){ //check if any citation paper is already in our paperList and check link does not already exist
+    //                 links.push({"source":paper.paperId,"target":paperCitation.paperId,"type":"citations",strength:0})
+    //                 linksAdded.add(sourceDestConcat)
+    //                 nodesConnected.add(paperCitation.paperId)
+    //                 nodesConnected.add(paper.paperId)
+    //             }
+    //         }
+    //     }
+    //     let x=10,y=0
+    //     let nodes:{id:string,x?:number,y?:number}[] = Object.values(papersMap).map((paper:any)=>{
+    //         return nodesConnected.has(paper.paperId) ? 
+    //         {id:paper.paperId,title:paper.title} 
+    //         : 
+    //         {id:paper.paperId,title:paper.title.substring(0,15)+'...',x:x,y:y=y+12}
+    //     })
+    //     let nodesAndLinks = {nodes:nodes,links:links}
+    //     return {sortedPapers:sortedPapers,nodesAndLinks:nodesAndLinks}
+    // }),
     // setSortedPapers:(sortedPapers:Paper[])=>set(()=>{
     //     let paperIds = sortedPapers.reduce((acc,paper)=>(acc.add(paper.paperId)),new Set()) //Add all paperIds in a set
     //     let links=[]
