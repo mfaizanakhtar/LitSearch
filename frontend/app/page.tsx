@@ -30,7 +30,7 @@ export default function Home() {
       let rawPapers:any[]=[];
       
       if(displayMode=='query' && queries && queries.length > 0){
-        rawPapers = queries[0]?.papers?.map((item,index)=>({...item,arrayIndex:index})) //to preserve original index for events
+        rawPapers = queries[0]?.papers?.map((item,index)=>({...item,arrayIndex:index})) || []//to preserve original index for events
       }
       else if (displayMode=='project' && selectedProject?.papers){
         rawPapers = [...selectedProject?.papers]
