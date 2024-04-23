@@ -37,22 +37,22 @@ const handleProjectBadgeClick = (projectId:string)=>{
     <div className=''>
         {queryProjects?.length > 0 ? 
             <span className='-mt-1 mr-2'><Badge isColour={false} badgeText={'Associated Projects:'} /></span> 
-        : '' }
+        : 
+            <span className='-mt-1 mr-2'><Badge isColour={false} badgeText={'Click (+) to save this query to project:'} /></span> 
+         }
 
         {queryProjects.map((queryProject)=>(
             queryProject.name ? <span key={queryProject._id} onClick={()=>{queryProject._id ? handleProjectBadgeClick(queryProject._id) : ''}} className='cursor-pointer'><Badge badgeText={queryProject.name} /></span> : ''
         ))}
 
-        {queryProjects?.length > 0 ? 
-            <DropDown
-            dropDownArray={projects.map((project)=>({name:project.name,
-                ticked:project.queries?.some(projectQuery=>projectQuery.queryId==queries[0]?._id),
-                clickEvent:()=>{project._id ? handleQueryAddAndRemove(project._id) : ''}}))}                            
-            btnHtml={<PlusCircleIcon className='h-4 w-4 cursor-pointer -mb-1 ml-2' ></PlusCircleIcon>}
-            heading='Add to project'
-            />
-        : 
-            <></>}
+
+        <DropDown
+        dropDownArray={projects.map((project)=>({name:project.name,
+            ticked:project.queries?.some(projectQuery=>projectQuery.queryId==queries[0]?._id),
+            clickEvent:()=>{project._id ? handleQueryAddAndRemove(project._id) : ''}}))}                            
+        btnHtml={<PlusCircleIcon className='h-4 w-4 cursor-pointer -mb-1 ml-2' ></PlusCircleIcon>}
+        heading='Add to project'
+        />
 
     </div>
     </>
