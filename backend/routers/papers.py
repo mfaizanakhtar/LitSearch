@@ -37,8 +37,9 @@ async def add_user(background_tasks:BackgroundTasks,query:str,userId:str,isExist
             api_response = await get_search_result(query)
             data = api_response.json().get("data",[])
             query_id = ObjectId()
-            background_tasks.add_task(save_search_result, query, userId, data,query_id)
-            return {"_id":str(query_id),"query":query,"papers":data}
+            project_id = ObjectId()
+            background_tasks.add_task(save_search_result, query, userId, data,query_id,project_id)
+            return {"_id":str(query_id),"query":query,"papers":data,"createdProjectId":str(project_id)}
 
 @router.get("/userQueryHistory",response_description="Get Previous Searched Papers")
 async def get_user_papers(userId:str):

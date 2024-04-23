@@ -28,8 +28,10 @@ async def addProject(request:Project):
     raise HTTPException(status_code=500, detail="Project name not available")
 
 @router.get("/getUserProjects",response_description='Get projects for a user')
-async def getUserProjects(userId:str):
-    user_projects = projects.find({"team":{"$elemMatch":{"userId":userId}}},{"team":0}).sort({"_id":-1})
+async def getUserProjects(userId:str,querySearchTerm:str=None):
+    mongo_search_query = {"team":{"$elemMatch":{"userId":userId}}}
+    if(querySearchTerm): mongo_search_query["queries"]={"$elemMatch":{"searchTerm":querySearchTerm}}
+    user_projects = projects.find(mongo_search_query,{"team":0}).sort({"_id":-1})
     parsed_user_projects = [convert_to_serializable(projects) async for projects in user_projects]
     return parsed_user_projects
 

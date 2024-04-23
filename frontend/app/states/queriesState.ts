@@ -14,7 +14,7 @@ interface QueriesState {
     setSortType:(sortField:'Year',sortType:'asc'|'desc'|'relevance')=>void
     setSortedPapers:(paper:Paper[])=>void
 
-    searchQuery:(query:string,userId:any,loaderCallback:any)=>void
+    searchQuery:(query:string,userId:any,loaderCallback:any)=>void|any
     setQueries:(queries:Array<Queries>)=>void
     setEvent:(arrayIndex:number,event:Events,callback?:any)=>void
 
@@ -55,6 +55,7 @@ const queriesState = create<QueriesState>()((set) => ({
         return {sortedPapers:updatedSortedPapers}
     }),
     setSortedPapers:(sortedPapers:Paper[])=>set(()=>{
+        debugger
         let links:any=[]
         let papersMap:{ [key: string]: Paper }={}
 
@@ -166,7 +167,6 @@ const queriesState = create<QueriesState>()((set) => ({
 
     },
     searchQuery:async(query:string,userId:any,loaderCallback:any)=>{
-        debugger
         let queriesArray:Array<Queries>=[]
          set((state)=>{
             queriesArray=state.queries
@@ -181,7 +181,7 @@ const queriesState = create<QueriesState>()((set) => ({
             loaderCallback(false)
             axios.get(`${process.env.NEXT_PUBLIC_API_URL}api/paper/search?query=${query}&userId=${userId}&isExistingQuery=true`)
         }else{
-            let {data:queriesResponse} =await axios.get(`${process.env.NEXT_PUBLIC_API_URL}api/paper/search?query=${query}&userId=${userId}`)
+            let {data:queriesResponse} = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}api/paper/search?query=${query}&userId=${userId}`)
             queriesResponse.papers = queriesResponse?.papers?.map((paper:any)=>({...paper,journalName:paper?.journal?.name}))
             if(queriesItemIndex!=-1){
                 let queriesItemToSwap = {...queriesArray[queriesItemIndex],papers:queriesResponse.papers}
@@ -193,6 +193,7 @@ const queriesState = create<QueriesState>()((set) => ({
             }
             set(()=>({queries:queriesArray}))
             loaderCallback(false)
+            return queriesResponse
         }
     },
     isDetailView: (status:boolean)=>set(()=>({detailView: status})),

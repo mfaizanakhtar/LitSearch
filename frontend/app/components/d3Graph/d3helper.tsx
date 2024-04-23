@@ -124,7 +124,6 @@ export class D3LitGraph{
     }
 
     private mouseOverByIdFunction = (id:string,isCardEvent?:boolean) => {
-        debugger
         let pathColourHover = this.pathColourHover
         let nodeHoverColour = this.nodeHoverColour
         let nodeHoverBorder = this.nodeHoverBorder

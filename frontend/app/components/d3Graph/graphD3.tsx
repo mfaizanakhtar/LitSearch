@@ -36,6 +36,8 @@ const GraphD3 = ({width,height}:{width?:number,height?:number}) => {
         highlightAndScrollToPaper,revertHightLight,
         width=width,height=height)
       
+    }else{
+      if(graphInstance.current) graphInstance.current.getGraphRef()?.remove()
     }
   },[nodesAndLinks])
 

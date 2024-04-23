@@ -1,7 +1,7 @@
 'use client'
 import React, { Fragment, useEffect, useState } from 'react';
 import { Combobox, Dialog, Transition } from '@headlessui/react';
-import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
+import { DocumentMagnifyingGlassIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 import MagGlassIcon from '../utility/MagGlassIcon';
 
 import DropDown from '../utility/DropDown';
@@ -13,7 +13,7 @@ import ConfirmationDialog from '../utility/ConfirmationDialog';
 import CreateProject from '../projects/createProject';
 import Modal from '../utility/Modal';
 import Badge from '../utility/Badge';
-import { Project } from '@/app/interfaces';
+import { Project, Queries } from '@/app/interfaces';
 import ProjectBadges from './projectBadges';
 
 
@@ -23,7 +23,7 @@ function classNames(...classes: string[]) {
 
 export default function Search({setIsLoading}:any) {
     const {queries,searchQuery,setSortType} = queriesState()
-    const {projects,selectedProject,getProjectDetails,deleteUserProject} = projectState()
+    const {projects,selectedProject,getProjectDetails,deleteUserProject,addProjectAfterQuerySearch} = projectState()
     const {userId,displayMode,setDisplayMode,searchDisplay,setSearchDisplay} = genericState()
 
     const [currentQuery, setCurrentQuery] = useState('');
@@ -39,7 +39,6 @@ export default function Search({setIsLoading}:any) {
     const closeModal = () => setShowModal(false);
 
     useEffect(()=>{
-        debugger
         let searchDisplay = (displayMode=='query' &&  queries.length>0) ? (queries[0].query) : 
             (displayMode=='project' ? selectedProject?.name :'')
         setSearchDisplay(searchDisplay || '')
@@ -64,8 +63,16 @@ export default function Search({setIsLoading}:any) {
     const handleSearch = async (clickedItem?:any) => {
         setIsLoading(true)
         if(clickedItem?.type=='query' || clickedItem==undefined){
-            searchQuery(clickedItem && clickedItem.value ? clickedItem.value : currentQuery,userId,setIsLoading)
+            let searchTerm = clickedItem && clickedItem.value ? clickedItem.value : currentQuery
+            let searchResp:Queries = await searchQuery(searchTerm,userId,setIsLoading)
             setDisplayMode('query')
+            debugger
+            userId && searchResp?.createdProjectId ? 
+            addProjectAfterQuerySearch(userId,
+                searchResp?._id,
+                searchResp?.createdProjectId,
+                searchResp?.query
+            ) : ''
         }
         else if(clickedItem?.type=='project'){
             await getProjectDetails(clickedItem.value,userId)
@@ -114,7 +121,7 @@ export default function Search({setIsLoading}:any) {
         <CreateProject dialogOpen={projectAddDialogOpen} setDialogOpen={setProjAddDialog}/>
         <div className="relative mt-6 px-4 sm:px-6 lg:px-8 flex items-center" >
             <div className='flex-grow'>
-                <ProjectBadges/>
+                {displayMode=='query' ?<ProjectBadges/> : ''}
 
                 <div className="relative mt-5 cursor-pointer" onClick={openModal}>
                     <input
@@ -129,7 +136,11 @@ export default function Search({setIsLoading}:any) {
                         readOnly={true}
                     />
                     <div className="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center">
-                        <MagGlassIcon />
+                        {displayMode=='query' ? <MagGlassIcon /> 
+                        : 
+                        <DocumentMagnifyingGlassIcon className={"h-5 w-5"}/>
+                        }
+                        
                     </div>
                 </div>
             </div>

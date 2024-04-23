@@ -4,7 +4,7 @@ from backend.db import engine
 
 papers, eventlog, queries, projects = engine["papers"], engine["events"], engine["queries"] , engine["projects"]
 
-async def save_search_result(query,userId,responseData,queryId):
+async def save_search_result(query,userId,responseData,queryId,projectId):
     # Logic to save data to MongoDB
     transformed_papers = [transform_paper_json(paper) for paper in responseData]
     paperIds=[]
@@ -17,12 +17,13 @@ async def save_search_result(query,userId,responseData,queryId):
         paperIds.append({"paperId":data["paperId"],"index":time.time()})
     
     await queries.insert_one({"_id":queryId,"query":query,"userId":userId,"papers":paperIds,"index":time.time()})
-    await create_project_and_save_query(query,userId,queryId)
+    await create_project_and_save_query(query,userId,queryId,projectId)
 
-async def create_project_and_save_query(query,userId,queryId):
+async def create_project_and_save_query(query,userId,queryId,projectId):
     found = await projects.find_one({"name":query,"team":{"$elemMatch":{"userId":userId}}})
     if not found:
             await projects.insert_one({
+                "_id":projectId,
                 "name":query,
                 "team":[{"userId":userId,"role":"owner"}],
                 "papers":[],

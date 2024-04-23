@@ -1,6 +1,7 @@
 export interface Queries {
     _id:string,
     query:string,
+    createdProjectId?:string
     papers:Paper[]
 }
 
@@ -45,7 +46,7 @@ export interface Project{
     detailsFetched?:boolean,
     team?:{userId:string,role:string,image?:string,name?:string,userDetails?:any}[],
     papers?:{paperId:String}[]
-    queries?:{queryId:string,searchTerm:string}[]
+    queries?:{queryId:string,searchTerm:string,addedBy?:string}[]
 }
 
 export interface userSessionObj{

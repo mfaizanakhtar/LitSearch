@@ -8,6 +8,7 @@ interface ProjectState{
     addNewProject:(project:Project,user:any)=>any
     deleteUserProject:(userId:string|any,projectId:string)=>void
     getAllProjects:(userId:string|any)=>void
+    addProjectAfterQuerySearch:(userId:string,queryId:string,projectId:string,querySearchTerm:string)=>void
     AddRemovePaperFromProject:(userId:string,paperId:any,projectId:string)=>void
     AddRemoveQueryFromProject:(userId:string,query:Queries,projectId:string)=>void
     addMemberToProjTeam:(invitedByMember:string|any,invitedMember:string,projectName:string|any)=>any
@@ -49,6 +50,25 @@ const projectState = create<ProjectState>()((set) => ({
         let {data}:any = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}api/projects/getUserProjects?userId=${userId}`)
         set(()=>{
             let updatedProjects:Array<Project> = data
+            return {projects:updatedProjects}
+        })
+    },
+    addProjectAfterQuerySearch:async(userId:string,queryId:string,projectId:string,querySearchTerm:string)=>{
+        set((state)=>{
+            let updatedProjects:Array<Project> = state.projects
+            let newProject:Project = {
+                _id: projectId,
+                name: querySearchTerm,
+                papers: [],
+                queries: [
+                    {
+                        queryId: queryId,
+                        searchTerm: querySearchTerm,
+                        addedBy: userId
+                    }
+                ]
+            }
+            updatedProjects.unshift(newProject)
             return {projects:updatedProjects}
         })
     },
