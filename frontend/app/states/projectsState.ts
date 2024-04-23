@@ -1,27 +1,29 @@
 import { create } from "zustand";
-import { Project } from "../interfaces";
+import { Project, Queries } from "../interfaces";
 import axios from "axios";
 
 interface ProjectState{
     projects:Array<Project>
     selectedProject:Project
     addNewProject:(project:Project,user:any)=>any
-    deleteUserProject:(userId:string|any,projectName:string)=>void
+    deleteUserProject:(userId:string|any,projectId:string)=>void
     getAllProjects:(userId:string|any)=>void
-    AddRemovePaperFromProject:(userId:string,paperId:any,projectName:string)=>void
+    addProjectAfterQuerySearch:(userId:string,queryId:string,projectId:string,querySearchTerm:string)=>void
+    AddRemovePaperFromProject:(userId:string,paperId:any,projectId:string)=>void
+    AddRemoveQueryFromProject:(userId:string,query:Queries,projectId:string)=>void
     addMemberToProjTeam:(invitedByMember:string|any,invitedMember:string,projectName:string|any)=>any
-    getProjectDetails:(projectName:string,userId:string|any)=>void
+    getProjectDetails:(projectId:string,userId:string|any)=>void
 }
 
 const projectState = create<ProjectState>()((set) => ({
     projects:[],
     selectedProject:{},
-    deleteUserProject:async(userId:string,projectName:string)=>{
-        let{data}:any = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}api/projects/deleteUserProject?projectName=${projectName}&userId=${userId}`)
+    deleteUserProject:async(userId:string,projectId:string)=>{
+        let{data}:any = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}api/projects/deleteUserProject?projectId=${projectId}&userId=${userId}`)
         console.log(data)
         set((state)=>{
             let updatedProjects = state.projects
-            updatedProjects = updatedProjects.filter((project)=>(project.name!=projectName))
+            updatedProjects = updatedProjects.filter((project)=>(project._id!=projectId))
             return {projects:updatedProjects,selectedProject:{}}
         })
     },
@@ -51,6 +53,25 @@ const projectState = create<ProjectState>()((set) => ({
             return {projects:updatedProjects}
         })
     },
+    addProjectAfterQuerySearch:async(userId:string,queryId:string,projectId:string,querySearchTerm:string)=>{
+        set((state)=>{
+            let updatedProjects:Array<Project> = state.projects
+            let newProject:Project = {
+                _id: projectId,
+                name: querySearchTerm,
+                papers: [],
+                queries: [
+                    {
+                        queryId: queryId,
+                        searchTerm: querySearchTerm,
+                        addedBy: userId
+                    }
+                ]
+            }
+            updatedProjects.unshift(newProject)
+            return {projects:updatedProjects}
+        })
+    },
     addMemberToProjTeam:async(invitedByMember:String,invitedMember:String,projectName:String)=>{
         try{
             debugger
@@ -72,12 +93,12 @@ const projectState = create<ProjectState>()((set) => ({
         }
         
     },
-    AddRemovePaperFromProject:async(userId:String,paper:any,projectName:String)=>{
+    AddRemovePaperFromProject:async(userId:String,paper:any,projectId:String)=>{
         set((state)=>{
             let updatedProjects = state.projects
             let selectedProject = state.selectedProject
             updatedProjects.forEach((project)=>{
-                if(project.name==projectName){
+                if(project._id==projectId){
                     debugger
                     let isExistsIndex = project.papers?.findIndex(p=>p.paperId==paper?.paperId)
                     if(isExistsIndex!=undefined && isExistsIndex>-1) project.papers?.splice(isExistsIndex,1)
@@ -88,17 +109,33 @@ const projectState = create<ProjectState>()((set) => ({
             return {projects:updatedProjects,selectedProject:selectedProject}
        })
        let {data} = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}api/projects/addPaperToProject`,
-            {paperId:paper?.paperId,projectName:projectName,userId:userId}
+            {paperId:paper?.paperId,projectId:projectId,userId:userId}
        )
-       console.log(data)
 
     },
-    getProjectDetails:async(projectName, userId)=> {
+    AddRemoveQueryFromProject:async(userId:String,query:Queries,projectId:String)=>{
+        set((state)=>{
+            let updatedProjects = state.projects
+            updatedProjects.forEach((project)=>{
+                if(project._id==projectId){
+                    let isExistsIndex = project.queries?.findIndex(q=>q.queryId==query._id)
+                    if(isExistsIndex!=undefined && isExistsIndex>-1) project.queries?.splice(isExistsIndex,1)
+                    else project.queries?.push({queryId:query._id,searchTerm:query.query})
+                }
+            })
+            return {projects:updatedProjects}
+       })
+       let {data} = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}api/projects/addQueryToProject`,
+            {queryId:query?._id,searchTerm:query.query,projectId:projectId,userId:userId}
+       )
+    },
+    getProjectDetails:async(projectId, userId)=> {
+        debugger
         let updatedSelectedProject:any = null
         set((state)=>{
             let updatedProjects = state.projects
             updatedProjects.forEach((project)=>{
-                if(project.name==projectName){
+                if(project._id==projectId){
                     if(project.detailsFetched){
                         updatedSelectedProject = project
                     }
@@ -109,12 +146,12 @@ const projectState = create<ProjectState>()((set) => ({
 
         })
         if(updatedSelectedProject) return
-        let {data} = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}api/projects/getProjectDetails?projectName=${projectName}&userId=${userId}`)
+        let {data} = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}api/projects/getProjectDetails?projectId=${projectId}&userId=${userId}`)
         console.log(data)
         set((state)=>{
             let updatedProjects = state.projects
             updatedProjects.forEach((project,index)=>{
-                if(project.name==projectName){
+                if(project._id==projectId){
                     project={...data,detailsFetched:true}
                     updatedSelectedProject=project
                     updatedProjects[index]=project

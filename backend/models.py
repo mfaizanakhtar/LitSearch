@@ -32,8 +32,14 @@ class Project(BaseModel):
     userId:str
 
 class PaperProject(BaseModel):
+    projectId:str
     paperId:str
-    projectName:str
+    userId:str
+
+class QueryProject(BaseModel):
+    projectId:str
+    queryId:str
+    searchTerm:str
     userId:str
 
 class AddUserToProject(BaseModel):

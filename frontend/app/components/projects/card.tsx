@@ -49,7 +49,7 @@ export default function Card(paper: Paper) {
     const handlePaperFromProjDelete = ()=>{
         setIsRemoved(true)
         setTimeout(async () => {
-            userId && selectedProject?.name ? await AddRemovePaperFromProject(userId,paper,selectedProject.name) : ''
+            userId && selectedProject?._id ? await AddRemovePaperFromProject(userId,paper,selectedProject._id) : ''
             setIsRemoved(false)
         }, 500);
         setConfirmationDialogState(false)
@@ -79,7 +79,7 @@ export default function Card(paper: Paper) {
                             <div className='absolute right-4 bg-opacity-100'><DropDown 
                                 dropDownArray={projects.map((project)=>({name:project.name,
                                     ticked:project.papers?.some(projectPaper=>projectPaper.paperId==paper.paperId),
-                                    clickEvent:()=>(userId && project?.name ? AddRemovePaperFromProject(userId,paper,project.name) : '')}))}                            
+                                    clickEvent:()=>(userId && project?._id ? AddRemovePaperFromProject(userId,paper,project._id) : '')}))}                            
                                 btnHtml={<PlusCircleIcon className='h-5 w-5 cursor-pointer' ></PlusCircleIcon>}
                                 heading='Add to project'
                             /></div>

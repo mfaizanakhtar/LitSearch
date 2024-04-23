@@ -1,9 +1,10 @@
 
 
+from bson import ObjectId
 from fastapi import APIRouter, HTTPException
 from pymongo import ReturnDocument
 from backend.db import engine
-from backend.models import AddUserToProject, PaperProject, Project
+from backend.models import AddUserToProject, PaperProject, Project, QueryProject
 from backend.util import convert_to_serializable, parse_mongo_dict
 
 
@@ -13,37 +14,64 @@ projects , users = engine["projects"] , engine["users"]
 
 @router.post("/addProject",response_description='Add New Projects')
 async def addProject(request:Project):
-    is_exists = await projects.find_one({"name":request.name})
+    is_exists = await projects.find_one({"name":request.name,"team":{"$elemMatch":{"userId":request.userId}}})
     if(is_exists is None):
         await projects.insert_one({
             "name":request.name,
             "desc":request.desc,
             "team":[{"userId":request.userId,"role":"owner"}],
-            "papers":[]})
+            "papers":[],
+            "queries":[]})
         
         return {"detail":"Created successfully"}
     
     raise HTTPException(status_code=500, detail="Project name not available")
 
 @router.get("/getUserProjects",response_description='Get projects for a user')
-async def getUserProjects(userId:str):
-    user_projects = projects.find({"team":{"$elemMatch":{"userId":userId}}},{"team":0}).sort({"_id":-1})
+async def getUserProjects(userId:str,querySearchTerm:str=None):
+    mongo_search_query = {"team":{"$elemMatch":{"userId":userId}}}
+    if(querySearchTerm): mongo_search_query["queries"]={"$elemMatch":{"searchTerm":querySearchTerm}}
+    user_projects = projects.find(mongo_search_query,{"team":0}).sort({"_id":-1})
     parsed_user_projects = [convert_to_serializable(projects) async for projects in user_projects]
     return parsed_user_projects
 
 @router.post("/addPaperToProject",response_description='Paper id added to project')
 async def addPaperToProject(request:PaperProject):
-    is_exists = await projects.find_one({"name":request.projectName,"papers":{"$elemMatch":{"paperId":request.paperId}}})
-    print(is_exists)
+    try:
+        project_id = ObjectId(request.projectId)
+        print(project_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid project ID format")
+
+    is_exists = await projects.find_one({"_id":project_id,"papers":{"$elemMatch":{"paperId":request.paperId}}})
     updateResult = None
     if(is_exists is None):
         mongo_update_query = {"$push":{"papers":{"paperId":request.paperId,"addedBy":request.userId}}} #if not exists, add
     else:
         mongo_update_query = {"$pull":{"papers":{"paperId":request.paperId}}} # if exists, pull that record
-    updateResult = await projects.find_one_and_update({"name":request.projectName},
+    updateResult = await projects.find_one_and_update({"_id":project_id},
                             mongo_update_query)
 
-    # print(updateResult)
+    return {"detail":parse_mongo_dict(updateResult)}
+
+@router.post("/addQueryToProject",response_description='Query added to project')
+async def addPaperToProject(request:QueryProject):
+    try:
+        project_id = ObjectId(request.projectId)
+        print(project_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid project ID format")
+    
+    is_exists = await projects.find_one({"_id":project_id,"queries":{"$elemMatch":{"queryId":request.queryId}}})
+    print(f'is exists {is_exists}')
+    updateResult = None
+    if(is_exists is None):
+        mongo_update_query = {"$push":{"queries":{"queryId":request.queryId,"searchTerm":request.searchTerm,"addedBy":request.userId}}} #if not exists, add
+    else:
+        mongo_update_query = {"$pull":{"queries":{"queryId":request.queryId}}} # if exists, pull that record
+    updateResult = await projects.find_one_and_update({"_id":project_id},
+                            mongo_update_query)
+
     return {"detail":parse_mongo_dict(updateResult)}
 
 @router.post("/addUserToProject",response_description='Adding User to a project')
@@ -60,22 +88,33 @@ async def addUserToProject(request:AddUserToProject):
         raise HTTPException(status_code=500, detail="User does not exists")
     
 @router.delete("/deleteUserProject",response_description='Delete Project For User')
-async def deleteUserProejct(projectName:str,userId:str):
-    delete_result = await projects.find_one_and_delete({"name":projectName,"team":{"$elemMatch":{"userId":userId,"role":"owner"}}})
+async def deleteUserProejct(projectId:str,userId:str):
+    try:
+        project_id = ObjectId(projectId)
+        print(project_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid project ID format")
+    
+    delete_result = await projects.find_one_and_delete({"_id":project_id,"team":{"$elemMatch":{"userId":userId,"role":"owner"}}})
     if delete_result is None:
-        delete_result = await projects.find_one_and_update({"name":projectName,"team":{"$elemMatch":{"userId":userId,"role":"collaborator"}}},
+        delete_result = await projects.find_one_and_update({"_id":project_id,"team":{"$elemMatch":{"userId":userId,"role":"collaborator"}}},
                                            {"$pull":{"team":{"userId":userId,"role":"collaborator"}}})
     if delete_result is None:
         raise HTTPException(status_code=500, detail="Unable to process delete request")
     return {"detail":"deleted successfully"}
     
 @router.get("/getProjectDetails",response_description='Project papers and team members')
-async def getProjectDetails(projectName:str,userId:str):
+async def getProjectDetails(projectId:str,userId:str):
     # user_projects = projects.find({"team":{"$elemMatch":{"userId":userId}}},{"team":0}).sort({"_id":-1})
-
+    try:
+        project_id = ObjectId(projectId)
+        print(project_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid project ID format")
+    
     user_project_details = projects.aggregate([
         {
-            "$match": {"name": projectName, "team": {"$elemMatch": {"userId": userId}}}
+            "$match": {"_id": project_id, "team": {"$elemMatch": {"userId": userId}}}
         },
         {
             "$unwind": "$team"
@@ -96,6 +135,7 @@ async def getProjectDetails(projectName:str,userId:str):
                 "_id": "$_id",
                 "name": {"$first": "$name"},
                 "desc": {"$first": "$desc"},
+                "queries":{"$first":"$queries"},
                 "team": {"$push": {
                     "userId": "$team.userId",
                     "role": "$team.role",
@@ -134,6 +174,7 @@ async def getProjectDetails(projectName:str,userId:str):
                 "name": {"$first": "$name"},
                 "desc": {"$first": "$desc"},
                 "team": {"$first": "$team"},  # Assumes team details have already been properly aggregated
+                "queries":{"$first":"$queries"},
                 "papers": {
                     "$push": {
                         "$cond": [
