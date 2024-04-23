@@ -42,10 +42,7 @@ export default function Search({setIsLoading}:any) {
         let searchDisplay = (displayMode=='query' &&  queries.length>0) ? (queries[0].query) : 
             (displayMode=='project' ? selectedProject?.name :'')
         setSearchDisplay(searchDisplay || '')
-    },[selectedProject,queries[0]])
-
-    // const searchDisplay = (displayMode=='query' &&  queries.length>0) ? (queries[0].query) : 
-    //                     (displayMode=='project' ? selectedProject?.name :'')
+    },[selectedProject,queries[0],displayMode])
 
     const handleKeyDown = async (event:any) => {
         if (event.key === 'Enter') {
