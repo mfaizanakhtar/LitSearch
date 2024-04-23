@@ -36,33 +36,9 @@ async def add_user(background_tasks:BackgroundTasks,query:str,userId:str,isExist
         else:
             api_response = await get_search_result(query)
             data = api_response.json().get("data",[])
-<<<<<<< HEAD
             query_id = ObjectId()
             background_tasks.add_task(save_search_result, query, userId, data,query_id)
             return {"_id":str(query_id),"query":query,"papers":data}
-        # api_response , db_response = await asyncio.gather(get_search_result(query),get_queries(userId,query))
-        # # print(f'db response {db_response}')
-        # print('step 1')
-        # if not db_response : db_response = {"papers":[]}
-
-        # seen_ids = set()
-        # merged_papers = [
-        #     paper for paper in db_response.get("papers",[])
-        #     + api_response.json().get("data",[]) if paper["paperId"] not in seen_ids and not seen_ids.add(paper["paperId"])
-        # ]
-
-        # if(len(merged_papers) != len(db_response.get("papers",[]))):
-        #         print('inside if')
-        #         background_tasks.add_task(save_search_result, query, userId, merged_papers)
-        #         return {"query":query,"papers":merged_papers}
-        # else:
-        #     print('inside else')
-        #     queries.update_one(*state_update_mongoQry)
-        #     return db_response
-=======
-            background_tasks.add_task(save_search_result, query, userId, data)
-            return {"query":query,"papers":data}
->>>>>>> main
 
 @router.get("/userQueryHistory",response_description="Get Previous Searched Papers")
 async def get_user_papers(userId:str):
