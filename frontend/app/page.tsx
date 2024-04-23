@@ -22,7 +22,7 @@ export default function Home() {
 
   // const [sortedPapers,setsortedPapers] = useState<Paper[]>([])
 
-  const {queries,setQueries,sortType,setSortedPapers,sortedPapers} = queriesState()
+  const {queries,setQueries,sortType,setSortedPapers,sortedPapers,detailView} = queriesState()
   const {getAllProjects,selectedProject} = projectState()
   const {userId,displayMode} = genericState()
 
@@ -40,7 +40,7 @@ export default function Home() {
       if(sortType.sortOrder=='relevance') sortedPapers = rawPapers // keep as is
       else sortedPapers = sortByDate(rawPapers,sortType.sortOrder) //sort here
       setSortedPapers(sortedPapers)
-  },[selectedProject.papers?.length,JSON.stringify(queries),sortType,displayMode])
+  },[selectedProject?.papers?.length,JSON.stringify(queries),sortType,displayMode])
 
   useEffect(()=>{
     if(userId){
@@ -59,7 +59,6 @@ export default function Home() {
         
   },[userId])
   
-  const {detailView} = queriesState()
   const [isLoading, setIsLoading] = useState(false)
 
   return (
@@ -68,7 +67,7 @@ export default function Home() {
     <main className="w-1/3 h-full flex flex-col">
     <UserSession></UserSession>
     <div className="fixed w-1/3 z-20 bg-white pb-5 rounded-lg"><Search setIsLoading={setIsLoading}/></div>
-    <div className="mt-24">
+    <div className="mt-40">
       {isLoading ? <div className="mt-10"><Loader/></div> : <></>}
       <ul role="list" className="mt-5 space-y-3 px-4 sm:px-6 lg:px-8">
         {queries.length > 0 ? 

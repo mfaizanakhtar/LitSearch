@@ -7,17 +7,6 @@ from backend.util import parse_mongo_dict
 
 router = APIRouter()
 
-# def user_helper(user) -> dict:
-#     return {
-#         "id": str(user["_id"]),
-#         "name": user["name"],
-#         "email": user["email"],
-#         "image": user["image"],
-#         "userId": str(user["userId"]),
-#         "provider":user["provider"]
-#     }
-
-
 @router.post("/loginUser", response_description="Add new user")
 async def add_user(user: User):
     collection = engine["users"]

@@ -1,5 +1,7 @@
 import asyncio
 import time
+
+from bson import ObjectId
 from backend.models import Event
 from fastapi import APIRouter
 from fastapi import BackgroundTasks
@@ -35,8 +37,9 @@ async def add_user(background_tasks:BackgroundTasks,query:str,userId:str,isExist
         else:
             api_response = await get_search_result(query)
             data = api_response.json().get("data",[])
-            background_tasks.add_task(save_search_result, query, userId, data)
-            return {"query":query,"papers":data}
+            query_id = ObjectId()
+            background_tasks.add_task(save_search_result, query, userId, data,query_id)
+            return {"_id":str(query_id),"query":query,"papers":data}
         # api_response , db_response = await asyncio.gather(get_search_result(query),get_queries(userId,query))
         # # print(f'db response {db_response}')
         # print('step 1')

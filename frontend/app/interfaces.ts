@@ -1,4 +1,5 @@
 export interface Queries {
+    _id:string,
     query:string,
     papers:Paper[]
 }
@@ -38,11 +39,13 @@ export interface SortType{
 }
 
 export interface Project{
+    _id?:string,
     name?:string,
     desc?:string,
     detailsFetched?:boolean,
     team?:{userId:string,role:string,image?:string,name?:string,userDetails?:any}[],
     papers?:{paperId:String}[]
+    queries?:{queryId:string,searchTerm:string}[]
 }
 
 export interface userSessionObj{

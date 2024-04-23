@@ -2,9 +2,9 @@ import time
 from backend.util import convert_to_serializable, transform_paper_json
 from backend.db import engine
 
-papers, eventlog, queries = engine["papers"], engine["events"], engine["queries"]
+papers, eventlog, queries, projects = engine["papers"], engine["events"], engine["queries"] , engine["projects"]
 
-def save_search_result(query,userId,responseData):
+async def save_search_result(query,userId,responseData,queryId):
     # Logic to save data to MongoDB
     transformed_papers = [transform_paper_json(paper) for paper in responseData]
     paperIds=[]
@@ -16,9 +16,18 @@ def save_search_result(query,userId,responseData):
         papers.update_one(paperMongoQuery, paperMongoUpdate, upsert=True)
         paperIds.append({"paperId":data["paperId"],"index":time.time()})
     
-    query_paperMongQuery = {"query":query,"userId":userId}
-    query_paperMongoUpdate={"$setOnInsert":{"papers":paperIds,"index":time.time()}}
-    queries.update_one(query_paperMongQuery,query_paperMongoUpdate,upsert=True)
+    await queries.insert_one({"_id":queryId,"query":query,"userId":userId,"papers":paperIds,"index":time.time()})
+    await create_project_and_save_query(query,userId,queryId)
+
+async def create_project_and_save_query(query,userId,queryId):
+    found = await projects.find_one({"name":query,"team":{"$elemMatch":{"userId":userId}}})
+    if not found:
+            await projects.insert_one({
+                "name":query,
+                "team":[{"userId":userId,"role":"owner"}],
+                "papers":[],
+                "queries":[{"queryId":str(queryId),"searchTerm":query}]
+            })
 
 
 async def save_ref_citation(userId,query,responseData):
@@ -42,7 +51,7 @@ async def save_ref_citation(userId,query,responseData):
        
 
 async def get_queries_history(userId:str):
-    all_queries = queries.find({"userId":userId},{"query":1}).sort({"index":-1})
+    all_queries = queries.find({"userId":userId},{"query":1,"_id":1}).sort({"index":-1})
     all_queries_result = [convert_to_serializable(queries) async for queries in all_queries]
     return all_queries_result
        

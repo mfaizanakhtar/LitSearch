@@ -1,5 +1,5 @@
 'use client'
-import React, { Fragment, useState } from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
 import { Combobox, Dialog, Transition } from '@headlessui/react';
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 import MagGlassIcon from '../utility/MagGlassIcon';
@@ -12,6 +12,9 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import ConfirmationDialog from '../utility/ConfirmationDialog';
 import CreateProject from '../projects/createProject';
 import Modal from '../utility/Modal';
+import Badge from '../utility/Badge';
+import { Project } from '@/app/interfaces';
+import ProjectBadges from './projectBadges';
 
 
 function classNames(...classes: string[]) {
@@ -21,7 +24,7 @@ function classNames(...classes: string[]) {
 export default function Search({setIsLoading}:any) {
     const {queries,searchQuery,setSortType} = queriesState()
     const {projects,selectedProject,getProjectDetails,deleteUserProject} = projectState()
-    const {userId,displayMode,setDisplayMode} = genericState()
+    const {userId,displayMode,setDisplayMode,searchDisplay,setSearchDisplay} = genericState()
 
     const [currentQuery, setCurrentQuery] = useState('');
     const [open, setShowModal] = useState(false);
@@ -30,11 +33,20 @@ export default function Search({setIsLoading}:any) {
     const [projectToDelete, setProjectToDelete] = useState('')
     const [projectAddDialogOpen,setProjAddDialog]=useState(false)
 
+
+
     const openModal = () => setShowModal(true);
     const closeModal = () => setShowModal(false);
 
-    const searchDisplay = (displayMode=='query' &&  queries.length>0) ? (queries[0].query) : 
-                        (displayMode=='project' ? selectedProject.name :'')
+    useEffect(()=>{
+        debugger
+        let searchDisplay = (displayMode=='query' &&  queries.length>0) ? (queries[0].query) : 
+            (displayMode=='project' ? selectedProject?.name :'')
+        setSearchDisplay(searchDisplay || '')
+    },[selectedProject,queries[0]])
+
+    // const searchDisplay = (displayMode=='query' &&  queries.length>0) ? (queries[0].query) : 
+    //                     (displayMode=='project' ? selectedProject?.name :'')
 
     const handleKeyDown = async (event:any) => {
         if (event.key === 'Enter') {
@@ -100,15 +112,17 @@ export default function Search({setIsLoading}:any) {
 
     return <>
         <CreateProject dialogOpen={projectAddDialogOpen} setDialogOpen={setProjAddDialog}/>
-        <div className="relative mt-6 px-4 sm:px-6 lg:px-8 flex items-center cursor-pointer" onClick={openModal} >
+        <div className="relative mt-6 px-4 sm:px-6 lg:px-8 flex items-center" >
             <div className='flex-grow'>
-                <div className="relative">
+                <ProjectBadges/>
+
+                <div className="relative mt-5 cursor-pointer" onClick={openModal}>
                     <input
                         style={{ pointerEvents: 'none' }}
                         name="search"
                         id="srch"
                         placeholder=""
-                        className="block w-full rounded-md border-0 py-1.5 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 pl-10 pr-3"
+                        className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 pl-10 pr-3"
                         type="text"
                         autoComplete='off'
                         value={searchDisplay}
@@ -163,17 +177,17 @@ export default function Search({setIsLoading}:any) {
                                 <h2 onClick={()=>{setProjAddDialog(true);closeModal();}}
                                 className="bg-gray-50 px-4 py-2.5 text-xs mt-1 mx-1 hover:bg-gray-100 text-center cursor-pointer border rounded font-bold text-gray-900">Create new project</h2>
                                 <ul className="mt-2 text-sm text-gray-800 ">
-                                    {filteredProjects.map((project:any) => (
+                                    {filteredProjects.map((project:Project) => (
                                         <Combobox.Option
                                             key={project.name}
-                                            value={{'value':project?.name,'type':'project'}}
+                                            value={{'value':project?._id,'type':'project'}}
                                             className={({ active }:any) =>
                                                 classNames('cursor-pointer select-none px-4 py-2', active && 'bg-indigo-600 text-white')
                                             }
                                         >
                                             <div className='flex justify-between items-center'>
                                             <div><span>{project.name}</span> - <span className='text-gray-400'>{project.desc}</span></div>
-                                            <span onClick={(event)=>{openDeleteConfirmationPopup(project?.name,event)}} className='hover:scale-125'><XMarkIcon className='h-4 w-4 transition-transform duration-150'/></span>
+                                            <span onClick={(event)=>{project?._id ? openDeleteConfirmationPopup(project?._id,event) : ''}} className='hover:scale-125'><XMarkIcon className='h-4 w-4 transition-transform duration-150'/></span>
                                             </div>
                                         </Combobox.Option>
                                     ))}
