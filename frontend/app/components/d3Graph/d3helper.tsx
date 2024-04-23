@@ -4,7 +4,7 @@ interface data{
     id:string,
     x?:number,
     y?:number,
-    actualYear?:string
+    tooltipXValue?:string
 }
 
 interface connections{
@@ -298,6 +298,8 @@ export class D3LitGraph{
             const nodeHoverBorder = this.nodeHoverBorder
             const pathColourHover = this.pathColourHover
             const tooltip = this.toolTip
+            const xLabel = this.xLabel
+            const yLabel = this.yLabel
             const hoverFunction = this.hoverFunction
             const hoverRevertFunction = this.hoverRevertFunction
             const mouseOverByIdFunction = this.mouseOverByIdFunction
@@ -321,7 +323,7 @@ export class D3LitGraph{
               tooltip.transition()
               .duration(200)
               .style("opacity", 0.9)
-              tooltip.html("Citations: " + d.x + "<br/>Year: " + (d.actualYear ? d.actualYear : d.y))
+              tooltip.html(xLabel+': ' + (d.tooltipXValue ? d.tooltipXValue : d.x) + '<br/>' + yLabel+': ' + d.y)
               .style("left", (event.clientX - 450) + "px")
               .style("top", (event.clientY - 100) + "px");
                 //--tooltip code end--//
@@ -331,23 +333,6 @@ export class D3LitGraph{
             .on("mouseout", function(event,d) {
               tooltip.style("opacity", 0); // Hide tooltip
               mouseOutByIdFunction(d.id)
-            //   d3.select(this)
-            //     .style("stroke-width", 1)
-            //     .style("stroke", "gray"); // Revert node border color
-              
-            //   // Revert connected paths
-            //   if(pathSelection){
-            //     pathSelection.each(function(p) {
-            //         if (p?.source?.id === d.id || p?.target?.id === d.id) {
-            //           d3.select(this)
-            //             .attr('stroke', '#d3d3d3')
-            //             .attr('marker-end', 'url(#arrowhead-normal)');
-            //         }
-            //       });
-            //   }
-
-            //   //revert highlight
-            //   hoverRevertFunction(d.id)
             });
         }
     }
@@ -370,83 +355,3 @@ export class D3LitGraph{
 
     }
 }
-
-// import d3 from "d3";
-// import React from "react";
-
-// export const createD3Graph = (d3ContainerRef:any) =>{
-//     const svg = d3.select(d3ContainerRef)
-//     .attr("width", 900)
-//     .attr("height", 800);
-    
-//     const margin = { top: 20, right: 20, bottom: 30, left: 40 },
-//     width = +svg.attr("width") - margin.left - margin.right,
-//     height = +svg.attr("height") - margin.top - margin.bottom;
-    
-//     const xScale = d3.scaleLinear().domain([0, 100]).range([0, width]);
-//     const yScale = d3.scaleLinear().domain([2015, 2021]).range([height, 0]);
-    
-//     const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-    
-//     g.append("g")
-//     .attr("transform", `translate(0,${height})`)
-//     .call(d3.axisBottom(xScale))
-//     .append("text")
-//     .attr("fill", "#000")
-//     .attr("y", -6)
-//     .attr("x", width)
-//     .attr("text-anchor", "end")
-//     .text("Citation Count");
-
-//   g.append("g")
-//     .call(d3.axisLeft(yScale).tickFormat(d3.format("d")))
-//     .append("text")
-//     .attr("fill", "#000")
-//     .attr("transform", "rotate(-90)")
-//     .attr("y", 6)
-//     .attr("dy", "0.71em")
-//     .attr("text-anchor", "end")
-//     .text("Year");
-
-//     return g
-// }
-
-// export const createPaths = (g:d3.Selection<SVGGElement, unknown, null, undefined>,data:{id:string,x:number,y:number}[],
-//     connections:{source:string,target:string}[],xScale,yScale)=>{
-//     const pathSelection = g.selectAll('.link')
-//     .data(connections.map(connection => ({
-//       source: data.find(node => node.id === connection.source),
-//       target: data.find(node => node.id === connection.target),
-//       id: connection.source + "-" + connection.target // Unique ID for the path
-//     })))
-//     .enter().append('path')
-//     .attr('class', 'link')
-//     .attr('id', d => `path-${d.id}`) // Assign ID based on unique connection ID
-//     .attr('d', (d:any) => {
-//         const startX = xScale(d.source.x),
-//               startY = yScale(d.source.y),
-//               endX = xScale(d.target.x),
-//               endY = yScale(d.target.y);
-//         const dx = endX - startX,
-//               dy = endY - startY,
-//               dr = Math.sqrt(dx * dx + dy * dy),
-//               // Adjustments to shorten the line so arrow doesn't overlap the circle
-//               offsetX = (dx * nodeRadius * 2) / dr,
-//               offsetY = (dy * nodeRadius * 1.3) / dr,
-//               endXAdjusted = endX - offsetX,
-//               endYAdjusted = endY - offsetY;
-//         // Generate a quadratic curve for a more natural connection path
-//         // const randomizer =  [true, false][Math.floor(Math.random() * 2)]
-//         const controlX = (startX + endX) / 2 // This remains the same
-//         const controlY = (startY + endY) / 2 - Math.abs(dy) / 3
-//         // const controlY = (startY + endY) / 2 + ( ? - (Math.abs(dy) / 3) : + (Math.abs(dy) / 3)); // Subtract instead of add to flip the curve
-//       return `M${startX},${startY}Q${controlX},${controlY} ${endXAdjusted},${endYAdjusted}`;
-
-//         // return `M${startX},${startY}Q${(startX + endX) / 2},${startY} ${endXAdjusted},${endYAdjusted}`;
-//     })
-//     .attr('stroke', pathColourInitial)
-//     .attr('stroke-width', 2)
-//     .attr('fill', 'none')
-//     .attr('marker-end', 'url(#arrowhead-normal)'); // Use normal marker initially
-  
-// }

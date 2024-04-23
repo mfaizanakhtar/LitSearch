@@ -98,7 +98,7 @@ const queriesState = create<QueriesState>()((set) => ({
                 year = date.getFullYear(); // year is a number
                 return {id:paper.paperId,y:paper.citationCount,x:year} 
             }
-            return {id:paper.paperId,y:paper.citationCount,x:year,actualYear:'No Data'}
+            return {id:paper.paperId,y:paper.citationCount,x:year,tooltipXValue:'No Data'}
         })
         let nodesAndLinks = {nodes:nodes,links:links}
         return {sortedPapers:sortedPapers,nodesAndLinks:nodesAndLinks}
