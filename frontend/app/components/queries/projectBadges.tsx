@@ -7,10 +7,10 @@ import DropDown from '../utility/DropDown'
 import { PlusCircleIcon } from '@heroicons/react/20/solid'
 import genericState from '@/app/states/genericState'
 
-const projectBadges = () => {
+const ProjectBadges = () => {
 
 const {projects,AddRemoveQueryFromProject,getProjectDetails} = projectState()
-const {queries,searchQuery} = queriesState()
+const {queries} = queriesState()
 const {userId,setDisplayMode,displayMode} = genericState()
 const [queryProjects,setQueryProjects] = useState<Project[]>([])
 
@@ -59,4 +59,4 @@ const handleProjectBadgeClick = (projectId:string)=>{
   )
 }
 
-export default projectBadges
+export default ProjectBadges
