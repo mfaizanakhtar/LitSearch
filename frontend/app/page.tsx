@@ -25,6 +25,15 @@ export default function Home() {
   const {queries,setQueries,sortType,setSortedPapers,sortedPapers} = queriesState()
   const {getAllProjects,selectedProject} = projectState()
   const {userId,displayMode} = genericState()
+  const [graphWidth,setGraphWidth] = useState(0)
+  const [graphHeight,setGraphHeight] = useState(0)
+
+  const [showTeam,toggleShowTeam] = useState(false)
+
+  useEffect(()=>{
+    setGraphWidth((window?.innerWidth || document.documentElement.clientWidth || document.body.clientWidth)*0.65)
+    setGraphHeight((window?.innerHeight || document.documentElement.clientHeight || document.body.clientHeight)*0.95)
+  },[])
 
   useEffect(()=>{
       let rawPapers:any[]=[];
@@ -63,7 +72,6 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
 
   return (
-    // <Graph></Graph>
    <>
     <main className="w-1/3 h-full flex flex-col">
     <UserSession></UserSession>
@@ -85,12 +93,18 @@ export default function Home() {
       {detailView ? 
         <PaperDetails /> 
       :
-      <div className="absolute z-0 fade-in"><GraphD3 /></div>
-         }
+      <div className="absolute z-0 fade-in">
+        {displayMode=='project' ? 
+        <>
+          <TeamMembers showTeam={showTeam} toggleShowTeam={toggleShowTeam}/>
+          <span className={showTeam ? 'hidden' : ''}><GraphD3 width={graphWidth} height={graphHeight*0.92}/></span>
+        </>
+        :
+          <GraphD3 width={graphWidth} height={graphHeight} />
+      }
+      </div>
+      }
     </aside>
-    {/*  displayMode=='project' ? <div className="absolute z-0 fade-in"><Graph /></div> :  <div className="absolute z-0 fade-in"><Graph /></div>} */}
-    {/* displayMode=='project' ? <TeamMembers /> :  <div className="absolute z-0 fade-in"><VegaGraph /></div>} */}
-
     <ScrollToTop></ScrollToTop>
     </>
   )

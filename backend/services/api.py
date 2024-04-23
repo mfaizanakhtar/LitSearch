@@ -3,7 +3,7 @@ import requests
 
 SEMANTIC_SCHOLAR_BASEURL = "https://api.semanticscholar.org/graph/v1/paper"
 FIELDS = "title,publicationDate,journal,referenceCount,citationCount,abstract,venue"
-REFENRENCES_CITATIONS_FIELD=",references,citations"
+# REFENRENCES_CITATIONS_FIELD=",references,citations"
 REFENRENCES_CITATIONS_FIELD=""
 LIMIT, OFFSET = 20, 0
 
