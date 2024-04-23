@@ -3,11 +3,14 @@ import { D3LitGraph } from './d3helper';
 import queriesState from '@/app/states/queriesState';
 import * as d3 from 'd3';
 
-const GraphD3 = () => {
+const GraphD3 = ({width,height}:{width?:number,height?:number}) => {
   const d3Container = useRef(null);
   const tooltipDiv = useRef(null)
   const graphInstance = useRef<D3LitGraph | null>(null); // Corrected type
   const {nodesAndLinks,highlightAndScrollToPaper,revertHightLight} = queriesState()
+
+  // const dynamicWidth = (window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth)*0.65;
+  // const dynamicHeight = (window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight)*0.95;
 
   // const data = [
   //   {id: 'A', x: 5000, y: 2000},
@@ -27,8 +30,11 @@ const GraphD3 = () => {
     if(nodesAndLinks.nodes?.length>0){
       console.log(nodesAndLinks)
       if(graphInstance.current) graphInstance.current.getGraphRef()?.remove()
-      graphInstance.current = new D3LitGraph(d3Container,nodesAndLinks.nodes || [],nodesAndLinks.links || [],tooltipDiv,
-        highlightAndScrollToPaper,revertHightLight)
+      graphInstance.current = new D3LitGraph(d3Container,nodesAndLinks.nodes || [],nodesAndLinks.links || [],
+        "Year","Citation Count",
+        tooltipDiv,
+        highlightAndScrollToPaper,revertHightLight,
+        width=width,height=height)
       
     }
   },[nodesAndLinks])
@@ -47,8 +53,8 @@ const GraphD3 = () => {
       <svg
         ref={d3Container}
         className="d3-component"
-        width={900}
-        height={800}
+        width={width}
+        height={height}
       />
       <div ref={tooltipDiv}></div>
     </>

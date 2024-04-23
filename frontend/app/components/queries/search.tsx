@@ -90,14 +90,14 @@ export default function Search({setIsLoading}:any) {
         currentQuery === ''
             ? queries
             : queries.filter((queriesItem) => {
-                return queriesItem?.query.toLowerCase().includes(currentQuery.toLowerCase())
+                return queriesItem?.query?.toLowerCase().includes(currentQuery?.toLowerCase())
             })
 
     const filteredProjects = 
         currentQuery === ''
                 ? projects
                 : projects.filter((projectItem) => {
-                    return projectItem?.name?.toLowerCase().includes(currentQuery.toLowerCase())
+                    return projectItem?.name?.toLowerCase().includes(currentQuery?.toLowerCase())
                 })
 
     const sortByYear = (sortType:'asc'|'desc'|'relevance',buttonText:string) =>{

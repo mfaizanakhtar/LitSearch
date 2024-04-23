@@ -24,6 +24,8 @@ export class D3LitGraph{
 
     private xScale: d3.ScaleLinear<number, number, never> | undefined
     private yScale: d3.ScaleLinear<number, number, never> | undefined
+    private xLabel:string;
+    private yLabel:string
 
     private data:data[];
     private connections:connections[];
@@ -56,6 +58,7 @@ export class D3LitGraph{
 
 
     constructor(d3ContainerRef:React.MutableRefObject<null>,data:data[],conenctions:connections[],
+        xLabel:string,yLabel:string,
         toolTipRef?:React.MutableRefObject<null>,
         hoverFunction?:(id:string)=>void,hoverRevertFunction?:(id:string)=>void,
         width?:number,height?:number){
@@ -63,6 +66,8 @@ export class D3LitGraph{
         this.d3Container = d3ContainerRef
         this.data = data
         this.connections = conenctions
+        this.xLabel = xLabel
+        this.yLabel = yLabel
         if(width) this.containerWidth = width
         if(height) this.containerHeight = height
         if(hoverFunction) this.hoverFunction=hoverFunction
@@ -186,13 +191,13 @@ export class D3LitGraph{
         
         this.g.append("g")
         .attr("transform", `translate(0,${height})`)
-        .call(d3.axisBottom(this.xScale))
+        .call(d3.axisBottom(this.xScale).tickFormat(d3.format("d")))
         .append("text")
         .attr("fill", "#000")
         .attr("y", -6)
         .attr("x", width)
         .attr("text-anchor", "end")
-        .text("Citation Count");
+        .text(this.xLabel);
 
         this.g.append("g")
             .call(d3.axisLeft(this.yScale).tickFormat(d3.format("d")))
@@ -202,7 +207,7 @@ export class D3LitGraph{
             .attr("y", 6)
             .attr("dy", "0.71em")
             .attr("text-anchor", "end")
-            .text("Year");
+            .text(this.yLabel);
 
     }
 

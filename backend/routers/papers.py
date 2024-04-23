@@ -23,7 +23,6 @@ papers, eventlog, queries = engine["papers"], engine["events"], engine["queries"
 @router.get("/search", response_description="Search Papers")
 async def add_user(background_tasks:BackgroundTasks,query:str,userId:str,isExistingQuery:bool=False):
     timestamp=time.time()
-    print(f'timestamp {timestamp}')
     state_update_mongoQry=({"query":query,"userId":userId},{"$set":{"index":timestamp}})
 
     if(isExistingQuery): # to just update the timestamp to fetch latest search result
@@ -37,6 +36,7 @@ async def add_user(background_tasks:BackgroundTasks,query:str,userId:str,isExist
         else:
             api_response = await get_search_result(query)
             data = api_response.json().get("data",[])
+<<<<<<< HEAD
             query_id = ObjectId()
             background_tasks.add_task(save_search_result, query, userId, data,query_id)
             return {"_id":str(query_id),"query":query,"papers":data}
@@ -59,6 +59,10 @@ async def add_user(background_tasks:BackgroundTasks,query:str,userId:str,isExist
         #     print('inside else')
         #     queries.update_one(*state_update_mongoQry)
         #     return db_response
+=======
+            background_tasks.add_task(save_search_result, query, userId, data)
+            return {"query":query,"papers":data}
+>>>>>>> main
 
 @router.get("/userQueryHistory",response_description="Get Previous Searched Papers")
 async def get_user_papers(userId:str):
