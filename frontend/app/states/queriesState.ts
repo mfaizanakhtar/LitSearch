@@ -15,6 +15,8 @@ interface QueriesState {
     setSortedPapers:(paper:Paper[])=>void
 
     searchQuery:(query:string,userId:any,loaderCallback:any)=>void|any
+    searchQueryById:(queryId:string)=>void|any
+
     setQueries:(queries:Array<Queries>)=>void
     setEvent:(arrayIndex:number,event:Events,callback?:any)=>void
 
@@ -165,6 +167,26 @@ const queriesState = create<QueriesState>()((set) => ({
         }
 
 
+    },
+    searchQueryById:async(queryId:string)=>{
+        debugger
+        let queriesArray:Array<Queries>=[]
+        set((state)=>{
+            queriesArray=state.queries
+            return state
+        })
+        let queriesItemIndex = queriesArray.findIndex((query)=>(query._id==queryId))
+        if(queriesItemIndex>=0 && queriesArray[queriesItemIndex].papers?.length>0){
+            let queriesItem:Queries = queriesArray[queriesItemIndex]
+            queriesArray.splice(queriesItemIndex,1)
+            queriesArray.unshift(queriesItem)
+        }else{
+            if(queriesItemIndex>=0) queriesArray.splice(queriesItemIndex,1)
+            let {data:query} = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}api/paper/searchQueryById?queryId=${queryId}`)
+            query.papers = query.papers?.map((paper:any)=>({...paper,journalName:paper?.journal?.name}))
+            queriesArray.unshift(query)
+        }
+        set(()=>({queries:queriesArray}))
     },
     searchQuery:async(query:string,userId:any,loaderCallback:any)=>{
         let queriesArray:Array<Queries>=[]

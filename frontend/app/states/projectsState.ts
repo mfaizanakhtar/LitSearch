@@ -13,6 +13,7 @@ interface ProjectState{
     AddRemoveQueryFromProject:(userId:string,query:Queries,projectId:string)=>void
     addMemberToProjTeam:(invitedByMember:string|any,invitedMember:string,projectName:string|any)=>any
     getProjectDetails:(projectId:string,userId:string|any)=>void
+    updatedQueriesCountInAssociatedProjects:(queryId:string,paperCount:number)=>void
 }
 
 const projectState = create<ProjectState>()((set) => ({
@@ -160,6 +161,17 @@ const projectState = create<ProjectState>()((set) => ({
             return {projects:updatedProjects,selectedProject:updatedSelectedProject}
         })
     },
+    updatedQueriesCountInAssociatedProjects:(queryId:string,paperCount:number)=>{
+        set((state)=>{
+            let updatedProjects = state.projects
+            updatedProjects.forEach(project => {
+                project.queries?.forEach((query)=>{
+                    if(query.queryId==queryId) query.papersCount=paperCount
+                })
+            });
+            return {projects:updatedProjects}
+        })
+    }
     
 }))
 

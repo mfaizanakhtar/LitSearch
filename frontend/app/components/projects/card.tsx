@@ -13,8 +13,8 @@ import ConfirmationDialog from '../utility/ConfirmationDialog';
 
 export default function Card(paper: Paper) {
 
-    const {setEvent,isDetailView,setDetailPagePaper} = queriesState()
-    const {projects,AddRemovePaperFromProject,selectedProject} = projectState()
+    const {setEvent,isDetailView,setDetailPagePaper,queries} = queriesState()
+    const {projects,AddRemovePaperFromProject,selectedProject,updatedQueriesCountInAssociatedProjects} = projectState()
     const {displayMode,userId} = genericState()
 
     const [isLoadingRelevant,setIsLoadingRelevant]=useState(false)
@@ -32,6 +32,8 @@ export default function Card(paper: Paper) {
         if(userId){
             let event:Events={type:'upvoted',userId:userId}
             await setEvent(paper?.arrayIndex ? paper.arrayIndex : 0,event,setRelevantLoadedSize)
+            let queriesUpdatedLength = queries[0]?.papers.length
+            updatedQueriesCountInAssociatedProjects(queries[0]._id,queriesUpdatedLength)
         }
         setIsLoadingRelevant(false)
 
