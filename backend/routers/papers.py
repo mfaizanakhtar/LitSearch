@@ -14,6 +14,7 @@ from backend.services.mongo import get_queries, get_queries_history, save_search
 
 
 from backend.services.events import emit
+from backend.util import parse_mongo_dict
 
 
 router = APIRouter()
@@ -40,6 +41,12 @@ async def add_user(background_tasks:BackgroundTasks,query:str,userId:str,isExist
             project_id = ObjectId()
             background_tasks.add_task(save_search_result, query, userId, data,query_id,project_id)
             return {"_id":str(query_id),"query":query,"papers":data,"createdProjectId":str(project_id)}
+        
+@router.get("/searchQueryById", response_description="Search Papers")
+async def add_user(background_tasks:BackgroundTasks,queryId:str):
+    db_response = await get_queries(queryId=queryId)
+    return db_response
+
 
 @router.get("/userQueryHistory",response_description="Get Previous Searched Papers")
 async def get_user_papers(userId:str):

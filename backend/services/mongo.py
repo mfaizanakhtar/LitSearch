@@ -1,4 +1,6 @@
 import time
+
+from bson import ObjectId
 from backend.util import convert_to_serializable, transform_paper_json
 from backend.db import engine
 
@@ -57,11 +59,16 @@ async def get_queries_history(userId:str):
     return all_queries_result
        
 
-async def get_queries(userId,query=None):
-    filterObj = {"userId":userId}
+async def get_queries(userId=None,query=None,queryId=None):
+    filterObj={}
+    if (queryId is not None):
+        filterObj["_id"]=ObjectId(queryId)
+    else:
+        filterObj["userId"] = userId
 
     if(query is not None):
         filterObj["query"]=query
+    print(filterObj)
     query_paper_pipline=[
         {"$match":filterObj},
         {"$sort": {"index": -1}},  # Sorts documents by queryDate in descending order
