@@ -112,6 +112,90 @@ async def getProjectDetails(projectId:str,userId:str):
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid project ID format")
     
+    # user_project_details = projects.aggregate([
+    #     {
+    #         "$match": {"_id": project_id, "team": {"$elemMatch": {"userId": userId}}}
+    #     },
+    #     {
+    #         "$unwind": "$team"
+    #     },
+    #     {
+    #         "$lookup": {
+    #             "from": "users",
+    #             "localField": "team.userId",
+    #             "foreignField": "userId",
+    #             "as": "team.userDetails"
+    #         }
+    #     },
+    #     {
+    #         "$unwind": "$team.userDetails"
+    #     },
+    #     {
+    #         "$group": {
+    #             "_id": "$_id",
+    #             "name": {"$first": "$name"},
+    #             "desc": {"$first": "$desc"},
+    #             "queries":{"$first":"$queries"},
+    #             "team": {"$push": {
+    #                 "userId": "$team.userId",
+    #                 "role": "$team.role",
+    #                 # "userDetails": "$team.userDetails"
+    #                 "email": "$team.userDetails.email",
+    #                 "image": "$team.userDetails.image",
+    #                 "name": "$team.userDetails.name",
+    #                 "provider": "$team.userDetails.provider"
+    #             }},
+    #             "papers": {"$first": "$papers"}  # Preserves the papers array to be processed later
+    #         }
+    #     },
+    #     {
+    #         "$unwind": {
+    #             "path": "$papers", 
+    #             "preserveNullAndEmptyArrays": True
+    #         }
+    #     },
+    #     {
+    #         "$lookup": {
+    #             "from": "papers",
+    #             "localField": "papers.paperId",
+    #             "foreignField": "paperId",
+    #             "as": "paperDetails"
+    #         }
+    #     },
+    #     {
+    #         "$unwind": {
+    #             "path": "$paperDetails", 
+    #             "preserveNullAndEmptyArrays": True
+    #         }
+    #     },
+    #     {
+    #         "$group": {
+    #             "_id": "$_id",
+    #             "name": {"$first": "$name"},
+    #             "desc": {"$first": "$desc"},
+    #             "team": {"$first": "$team"},  # Assumes team details have already been properly aggregated
+    #             "queries":{"$first":"$queries"},
+    #             "papers": {
+    #                 "$push": {
+    #                     "$cond": [
+    #                         {"$not": ["$papers.paperId"]},
+    #                         "$$REMOVE",
+    #                         {
+    #                             "paperId": "$papers.paperId",
+    #                             # "paperDetails": "$paperDetails"
+    #                             "abstract": "$paperDetails.abstract",
+    #                             "citationCount": "$paperDetails.citationCount",
+    #                             "journalName": "$paperDetails.journalName",
+    #                             "title": "$paperDetails.title",
+    #                             "publicationDate":"$paperDetails.publicationDate"
+    #                         }
+    #                     ]
+    #                 }
+    #             }
+    #         }
+    #     }
+    # ])
+
     user_project_details = projects.aggregate([
         {
             "$match": {"_id": project_id, "team": {"$elemMatch": {"userId": userId}}}
@@ -139,7 +223,6 @@ async def getProjectDetails(projectId:str,userId:str):
                 "team": {"$push": {
                     "userId": "$team.userId",
                     "role": "$team.role",
-                    # "userDetails": "$team.userDetails"
                     "email": "$team.userDetails.email",
                     "image": "$team.userDetails.image",
                     "name": "$team.userDetails.name",
@@ -193,7 +276,37 @@ async def getProjectDetails(projectId:str,userId:str):
                     }
                 }
             }
+        },
+        {
+            "$unwind":{
+                "path":"$queries",
+                "preserveNullAndEmptyArrays": True
+            }
+        },
+        {
+            "$addFields": {
+                "convertedQueryId": { "$toObjectId": "$queries.queryId" }
+            }
+        },
+        {
+            "$lookup":{
+                "from":"queries",
+                "localField":"convertedQueryId",
+                "foreignField":"_id",
+                "as":"queryDetails"
+            }
+        },
+        {
+            "$group": {
+                "_id": "$_id",
+                "name": {"$first": "$name"},
+                "desc": {"$first": "$desc"},
+                "team": {"$first": "$team"},  # Assumes team details have already been properly aggregated
+                "queries":{"$push":{"queryId":"$queries.queryId","searchTerm":"$queries.searchTerm","papersCount":{"$size":{"$first":"$queryDetails.papers"}}}},
+                "papers": {"$first":"$papers"}
+            }
         }
+
     ])
 
     parsed_project_details = [convert_to_serializable(project_detail) async for project_detail in user_project_details]
