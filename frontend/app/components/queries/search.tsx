@@ -15,6 +15,7 @@ import Modal from '../utility/Modal';
 import Badge from '../utility/Badge';
 import { Project, Queries } from '@/app/interfaces';
 import ProjectBadges from './projectBadges';
+import QueriesBadges from '../projects/queriesBadges';
 
 
 function classNames(...classes: string[]) {
@@ -118,7 +119,7 @@ export default function Search({setIsLoading}:any) {
         <CreateProject dialogOpen={projectAddDialogOpen} setDialogOpen={setProjAddDialog}/>
         <div className="relative mt-6 px-4 sm:px-6 lg:px-8 flex items-center" >
             <div className='flex-grow'>
-                {displayMode=='query' ?<ProjectBadges/> : ''}
+                {displayMode=='query' ?<ProjectBadges/> : <QueriesBadges/>}
 
                 <div className="relative mt-5 cursor-pointer" onClick={openModal}>
                     <input
