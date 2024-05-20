@@ -38,9 +38,9 @@ async def add_user(background_tasks:BackgroundTasks,query:str,userId:str,isExist
             api_response = await get_search_result(query)
             data = api_response.json().get("data",[])
             query_id = ObjectId()
-            project_id = ObjectId()
-            background_tasks.add_task(save_search_result, query, userId, data,query_id,project_id)
-            return {"_id":str(query_id),"query":query,"papers":data,"createdProjectId":str(project_id)}
+            # project_id = ObjectId()
+            background_tasks.add_task(save_search_result, query, userId, data,query_id)
+            return {"_id":str(query_id),"query":query,"papers":data}
         
 @router.get("/searchQueryById", response_description="Search Papers")
 async def add_user(background_tasks:BackgroundTasks,queryId:str):

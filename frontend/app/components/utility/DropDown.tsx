@@ -10,6 +10,7 @@ interface DropDown{
   name?: string|any;
   seperator?:boolean|any;
   ticked?:boolean|any;
+  strong?:boolean
   clickEvent: () => void;
 }
 
@@ -65,6 +66,7 @@ export default function DropDown({ dropDownArray,btnHtml,btnText,heading,positio
                 onClick={item.clickEvent}
                   className={classNames(
                     active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
+                    item.strong ? 'font-semibold' : '',
                     'block px-4 py-2 text-sm cursor-pointer flex'
                   )}
                 >

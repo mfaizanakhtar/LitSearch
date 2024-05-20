@@ -1,6 +1,7 @@
-import { InformationCircleIcon,BookOpenIcon } from '@heroicons/react/24/outline'
-import React from 'react'
+import { InformationCircleIcon,BookOpenIcon,ClipboardIcon } from '@heroicons/react/24/outline'
+import React, { useEffect, useState } from 'react'
 import ButtonPrimary from './ButtonPrimary'
+import Tooltip from './Tooltip'
 
 interface InfoCard{
     paperId:string,
@@ -8,10 +9,24 @@ interface InfoCard{
     breadCrumb:string,
     description:string,
     footerLeft:string,
+    footerLink?:string,
     footerRight:string
 }
 
-const InfoCardSmall = ({paperId,title,breadCrumb,description,footerLeft,footerRight}:InfoCard) => {
+const InfoCardSmall = ({paperId,title,breadCrumb,description,footerLeft,footerLink,footerRight}:InfoCard) => {
+
+  const [clipBoardTxt,setClipBoardTxt] = useState('Copy to clipboard')
+
+  useEffect(()=>{
+    setClipBoardTxt('Copy to clipboard')
+  },[title])
+
+  const copyClickBoardEvent=()=>{
+    setClipBoardTxt('Copied to clipboard')
+    navigator.clipboard.writeText(title)
+  }
+
+
   return <>
     <div key={paperId} className="grid grid-cols-1 gap-4 sm:grid-cols-1">
         <div 
@@ -28,9 +43,15 @@ const InfoCardSmall = ({paperId,title,breadCrumb,description,footerLeft,footerRi
             <img className="h-10 w-10 rounded-full" src={person.imageUrl} alt="" />
           </div> */}
           <div className="min-w-0 flex-1">
-            <a href="#" className="focus:outline-none">
+            <a className="focus:outline-none">
               <span className="absolute inset-0" aria-hidden="true" />
-              <p className="text-xm font-medium text-gray-900">{title ? title : ''}</p>
+
+              <span className="text-xm font-medium text-gray-900">
+                {title ? title : ''}
+                <Tooltip text={clipBoardTxt}>
+                  <ClipboardIcon onClick={copyClickBoardEvent} className='text-gray-500 h-5 w-5 inline ml-1 align-text-bottom cursor-pointer z-20'/>
+                </Tooltip>
+              </span>      
               <p className="truncate text-xs text-gray-500">{breadCrumb ? breadCrumb : ''}</p>
               <p className="mt-5 text-xs text-gray-700">
                 {description ? description : ''}
@@ -38,6 +59,13 @@ const InfoCardSmall = ({paperId,title,breadCrumb,description,footerLeft,footerRi
               <div className='flex justify-between mt-8'>
                 <p className="truncate text-xs text-gray-500">{footerLeft ? footerLeft : ''}</p>
                 <div className="grid place-items-end"><p className="truncate text-xs text-gray-500">{footerRight ? footerRight : ''}</p></div>
+              </div>
+              <div className='flex justify-between mt-8'>
+                {footerLink ? 
+                  <a target='_blank' className="truncate text-xs z-10 hover:underline" href={footerLink}>View details on semantics scholar</a>
+                  :
+                  ''
+                } 
               </div>
             </a>
           </div>

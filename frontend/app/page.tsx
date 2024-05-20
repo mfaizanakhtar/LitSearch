@@ -17,6 +17,7 @@ import TeamMembers from "./components/projects/teamMembers";
 import UserSession from "./components/utility/UserSession";
 import Graph from "./components/flowGraph/graph";
 import GraphD3 from "./components/d3Graph/graphD3";
+import SuccessAlert from "./components/utility/SuccessAlert";
 
 export default function Home() {
 
@@ -49,6 +50,7 @@ export default function Home() {
       if(sortType.sortOrder=='relevance') sortedPapers = rawPapers // keep as is
       else sortedPapers = sortByDate(rawPapers,sortType.sortOrder) //sort here
       setSortedPapers(sortedPapers)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   },[selectedProject?.papers?.length,JSON.stringify(queries),sortType,displayMode])
 
   useEffect(()=>{
@@ -66,12 +68,14 @@ export default function Home() {
       getAllProjects(userId)
     }
         
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   },[userId])
   
   const [isLoading, setIsLoading] = useState(false)
 
   return (
    <>
+    <SuccessAlert />
     <main className="w-1/3 h-full flex flex-col">
     <UserSession></UserSession>
     <div className="fixed w-1/3 z-20 bg-white pb-5 rounded-lg"><Search setIsLoading={setIsLoading}/></div>

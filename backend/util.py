@@ -22,3 +22,25 @@ def parse_mongo_dict(input):
     if input is None: return None
     input["_id"]=str(input["_id"])
     return input
+
+
+def decrement_last_decimal(number):
+    # Convert the number to a string to find the decimal place
+    num_str = str(number)
+    if '.' in num_str:
+        parts = num_str.split('.')
+        decimal_places = len(parts[1])
+    else:
+        # If there is no decimal point, return the number itself
+        return number
+
+    # Calculate the smallest decrement for the last decimal place
+    decrement = 10 ** (-decimal_places)
+    
+    # Subtract the decrement from the number
+    new_number = number - decrement
+    
+    # Convert to string and adjust manually if needed
+    new_number_str = f"{new_number:.{decimal_places}f}"
+    
+    return float(new_number_str)

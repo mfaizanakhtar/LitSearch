@@ -2,6 +2,7 @@ import * as d3 from 'd3';
 
 interface data{
     id:string,
+    title?:string,
     x?:number,
     y?:number,
     tooltipXValue?:string
@@ -54,24 +55,26 @@ export class D3LitGraph{
 
     hoverFunction!: (id:string) => void | undefined; 
     hoverRevertFunction!: (id:string) => void | undefined;
+    clickFunction!:(id:string)=>void | undefined;
 
 
 
-    constructor(d3ContainerRef:React.MutableRefObject<null>,data:data[],conenctions:connections[],
+    constructor(d3ContainerRef:React.MutableRefObject<null>,data:data[],connections:connections[],
         xLabel:string,yLabel:string,
         toolTipRef?:React.MutableRefObject<null>,
-        hoverFunction?:(id:string)=>void,hoverRevertFunction?:(id:string)=>void,
+        hoverFunction?:(id:string)=>void,hoverRevertFunction?:(id:string)=>void,clickFunction?:(id:string)=>void,
         width?:number,height?:number){
 
         this.d3Container = d3ContainerRef
         this.data = data
-        this.connections = conenctions
+        this.connections = connections
         this.xLabel = xLabel
         this.yLabel = yLabel
         if(width) this.containerWidth = width
         if(height) this.containerHeight = height
         if(hoverFunction) this.hoverFunction=hoverFunction
         if(hoverRevertFunction) this.hoverRevertFunction=hoverRevertFunction
+        if(clickFunction) this.clickFunction=clickFunction
         this.xAndYRange =this.setMinAndMax(data)
 
         this.createD3Graph()
@@ -89,6 +92,7 @@ export class D3LitGraph{
         this.data.forEach((element)=>{
             let htmlElement = document.getElementById(element.id)
             htmlElement?.addEventListener('mouseover', function() {
+                console.log("moveover")
                 mouseOverByIdFunction(element.id,true);  // Replace 'desiredNodeId' with the actual ID
             });
 
@@ -300,8 +304,7 @@ export class D3LitGraph{
             const tooltip = this.toolTip
             const xLabel = this.xLabel
             const yLabel = this.yLabel
-            const hoverFunction = this.hoverFunction
-            const hoverRevertFunction = this.hoverRevertFunction
+            const clickFunction = this.clickFunction
             const mouseOverByIdFunction = this.mouseOverByIdFunction
             const mouseOutByIdFunction = this.mouseOutByIdFunction
 
@@ -318,12 +321,15 @@ export class D3LitGraph{
             .style("stroke", "gray")
             .style("stroke-width", 1)
             .style("cursor", "pointer")
+            .on("click",function(event,d){
+                clickFunction(d.id)
+            })
             .on("mouseover", function(event,d) {
                 //--tooltip Code begin--//
               tooltip.transition()
               .duration(200)
               .style("opacity", 0.9)
-              tooltip.html(xLabel+': ' + (d.tooltipXValue ? d.tooltipXValue : d.x) + '<br/>' + yLabel+': ' + d.y)
+              tooltip.html('Title:'+d.title +  '<br/>' + xLabel+': ' + (d.tooltipXValue ? d.tooltipXValue : d.x) + '<br/>' + yLabel+': ' + d.y)
               .style("left", (event.clientX - 450) + "px")
               .style("top", (event.clientY - 100) + "px");
                 //--tooltip code end--//

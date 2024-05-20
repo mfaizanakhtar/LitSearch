@@ -10,17 +10,21 @@ import queriesState from '@/app/states/queriesState';
 import projectState from '@/app/states/projectsState';
 import genericState from '@/app/states/genericState';
 import ConfirmationDialog from '../utility/ConfirmationDialog';
+import Badge from '../utility/Badge';
+import Tooltip from '../utility/Tooltip';
+import CreateProject from './createProject';
 
 export default function Card(paper: Paper) {
 
     const {setEvent,isDetailView,setDetailPagePaper,queries} = queriesState()
     const {projects,AddRemovePaperFromProject,selectedProject,updatedQueriesCountInAssociatedProjects} = projectState()
-    const {displayMode,userId} = genericState()
+    const {displayMode,userId,showAlert} = genericState()
 
     const [isLoadingRelevant,setIsLoadingRelevant]=useState(false)
     const [relevantLoadedSize,setRelevantLoadedSize]=useState(0)
     const [isRemoved,setIsRemoved]=useState(false)
     const [isConfirmationDialogOpen, setConfirmationDialogState] = useState(false);
+    const [projectAddDialogOpen,setProjAddDialog]=useState(false)
     
     const detailViewclick = () => {
         isDetailView(true)
@@ -55,6 +59,14 @@ export default function Card(paper: Paper) {
             setIsRemoved(false)
         }, 500);
         setConfirmationDialogState(false)
+        showAlert(`'${paper.title}' Paper removed from this project`)
+    }
+
+    const handlePaperAddToProject = async(projectId:string,projectName:string) => {
+        if(userId){
+            let isAdded = await AddRemovePaperFromProject(userId,paper,projectId)
+            isAdded ? showAlert(`Paper added to project '${projectName}'`) : showAlert(`Paper removed from the project '${projectName}'`)
+        }
     }
     return <>
         <li id={paper.paperId} className={`z-10 rounded-md shadow mb-3 relative flex justify-between gap-y-6 ${isRemoved ? 'fade-out' : 'fade-in'} transform ${paper.isHovered ? 'scale-105 transition-transform border-2 border-primary' : 'scale-100 transition-transform'} hover:scale-105 transition-transform`}>
@@ -75,24 +87,35 @@ export default function Card(paper: Paper) {
                     </div> 
                 : <></>}
                     {displayMode=='query' ?
+                        <>
                         <div className='mt-5 flex'>
                             <ThumbUpIcon clickEvent={handleThumbUpClick} iconStatus={paper.upvoted ? paper.upvoted : false} />
                             <ThumbDownIcon clickEvent={handleThumbDownClick} iconStatus={paper.downvoted ? paper.downvoted : false} />
                             <div className='absolute right-4 bg-opacity-100'><DropDown 
-                                dropDownArray={projects.map((project)=>({name:project.name,
+                                dropDownArray={[{name:"CREATE NEW PROJECT",clickEvent:()=>{setProjAddDialog(true)},strong:true},...projects.map((project)=>({name:project.name,
                                     ticked:project.papers?.some(projectPaper=>projectPaper.paperId==paper.paperId),
-                                    clickEvent:()=>(userId && project?._id ? AddRemovePaperFromProject(userId,paper,project._id) : '')}))}                            
-                                btnHtml={<PlusCircleIcon className='h-5 w-5 cursor-pointer' ></PlusCircleIcon>}
+                                    clickEvent:()=>( (project?._id && project?.name) && handlePaperAddToProject(project._id,project.name) )}))]}                            
+                                btnHtml={<Tooltip text='Save this paper to project'><PlusCircleIcon className='h-5 w-5 cursor-pointer' /></Tooltip>}
                                 heading='Add to project'
                             /></div>
                         </div>  
+                        <CreateProject dialogOpen={projectAddDialogOpen} setDialogOpen={setProjAddDialog}/>
+                        </>
                     : 
                         <div className='mt-5 flex'>
                             <div className='absolute right-4 bg-opacity-100'>
-                                <MinusCircleIcon onClick={()=>(setConfirmationDialogState(true))} className='h-5 w-5 cursor-pointer' ></MinusCircleIcon>
+                                <Tooltip text='Remove this paper from project'><MinusCircleIcon onClick={()=>(setConfirmationDialogState(true))} className='h-5 w-5 cursor-pointer' ></MinusCircleIcon></Tooltip>
                             </div>
                         </div>
                     }
+                    {(paper.query || (displayMode=='query' && queries[0].query)) ? 
+                    <div className='mt-4 -mb-3'>
+                        <span className='-mt-1 mr-2'><Badge isColour={false} badgeText={'Search Term:'} /></span> 
+                        <Badge badgeText={paper.query || queries[0].query} />
+                    </div>
+                    : 
+                    ''}
+                    
                     <div className='mt-5 flex'>
                         {isLoadingRelevant ? <>
                         <span className='ml-3 h-4 w-2 mr-4'><Loader /></span>

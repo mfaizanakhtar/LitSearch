@@ -25,6 +25,7 @@ const PaperDetails = () => {
             description={paper.abstract}
             footerLeft={`${paper.citationCount ? 'Citations: '+paper.citationCount :''} ${paper.referenceCount ? 'References: '+paper.referenceCount : ''}`}
             footerRight={paper.venue}
+            footerLink={'https://www.semanticscholar.org/paper/'+paper.paperId}
         />
     </div>
 </>

@@ -13,6 +13,7 @@ export interface Paper {
     publicationDate:string,
     journalName:string,
     venue:string,
+    query?:string,
     arrayIndex?:number,
     index?:number,
     upvoted?:boolean,
