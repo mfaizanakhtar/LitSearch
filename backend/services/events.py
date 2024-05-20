@@ -2,6 +2,7 @@ from asyncio import Future
 import asyncio
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
+from decimal import Decimal
 import threading
 import time
 
@@ -46,6 +47,7 @@ async def handle_upvote(event_data):
     searchTermMongoUpdate={"$set":{ "papers.$[elem].upvoted": request.data, "papers.$[elem].downvoted": not request.data } }
     queries.update_one(searchTermMongoQuery,searchTermMongoUpdate,array_filters=[{ "elem.paperId": request.paperId }])
     relevantPapers = await fetch_references_citation(request.paperId)
+
     background_tasks.add_task(save_ref_citation,request.userId, request.query, relevantPapers)
     
     return relevantPapers

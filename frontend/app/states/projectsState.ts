@@ -9,8 +9,8 @@ interface ProjectState{
     deleteUserProject:(userId:string|any,projectId:string)=>void
     getAllProjects:(userId:string|any)=>void
     addProjectAfterQuerySearch:(userId:string,queryId:string,projectId:string,querySearchTerm:string)=>void
-    AddRemovePaperFromProject:(userId:string,paperId:any,projectId:string)=>void
-    AddRemoveQueryFromProject:(userId:string,query:Queries,projectId:string)=>void
+    AddRemovePaperFromProject:(userId:string,paperId:any,projectId:string)=>Promise<boolean>
+    AddRemoveQueryFromProject:(userId:string,query:Queries,projectId:string)=>Promise<boolean>
     addMemberToProjTeam:(invitedByMember:string|any,invitedMember:string,projectName:string|any)=>any
     getProjectDetails:(projectId:string,userId:string|any)=>void
     updatedQueriesCountInAssociatedProjects:(queryId:string,paperCount:number)=>void
@@ -36,10 +36,13 @@ const projectState = create<ProjectState>()((set) => ({
         } catch (error:any) {
             return error?.response?.data?.detail
         }
-        if(responseData?.data){
+        if(responseData?.data && responseData?.data?.projectId){
             set((state)=>{
                 let updatedProjects:Array<Project> = [...state.projects]
                 let updatedSelectedProject = state.selectedProject
+                project._id = responseData.data.projectId
+                project.queries=[]
+                project.papers=[]
                 project.team=[{"name":user?.userName,"userId":userId,"role":"owner","image":user?.userImage}]
                 updatedProjects.unshift(project)
                 updatedSelectedProject = project
@@ -95,6 +98,7 @@ const projectState = create<ProjectState>()((set) => ({
         
     },
     AddRemovePaperFromProject:async(userId:String,paper:any,projectId:String)=>{
+        let isAdded:boolean = false
         set((state)=>{
             let updatedProjects = state.projects
             let selectedProject = state.selectedProject
@@ -102,8 +106,8 @@ const projectState = create<ProjectState>()((set) => ({
                 if(project._id==projectId){
                     debugger
                     let isExistsIndex = project.papers?.findIndex(p=>p.paperId==paper?.paperId)
-                    if(isExistsIndex!=undefined && isExistsIndex>-1) project.papers?.splice(isExistsIndex,1)
-                    else project.papers?.push(paper)
+                    if(isExistsIndex!=undefined && isExistsIndex>-1) {project.papers?.splice(isExistsIndex,1);isAdded=false}
+                    else {project.papers?.push(paper); isAdded=true}
                     selectedProject = project
                 }
             })
@@ -112,16 +116,17 @@ const projectState = create<ProjectState>()((set) => ({
        let {data} = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}api/projects/addPaperToProject`,
             {paperId:paper?.paperId,projectId:projectId,userId:userId}
        )
-
+       return isAdded
     },
     AddRemoveQueryFromProject:async(userId:String,query:Queries,projectId:String)=>{
+        let isAdded:boolean = false
         set((state)=>{
             let updatedProjects = state.projects
             updatedProjects.forEach((project)=>{
                 if(project._id==projectId){
                     let isExistsIndex = project.queries?.findIndex(q=>q.queryId==query._id)
-                    if(isExistsIndex!=undefined && isExistsIndex>-1) project.queries?.splice(isExistsIndex,1)
-                    else project.queries?.push({queryId:query._id,searchTerm:query.query})
+                    if(isExistsIndex!=undefined && isExistsIndex>-1) {project.queries?.splice(isExistsIndex,1);isAdded=false}
+                    else {project.queries?.push({queryId:query._id,searchTerm:query.query});isAdded=true}
                 }
             })
             return {projects:updatedProjects}
@@ -129,6 +134,7 @@ const projectState = create<ProjectState>()((set) => ({
        let {data} = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}api/projects/addQueryToProject`,
             {queryId:query?._id,searchTerm:query.query,projectId:projectId,userId:userId}
        )
+       return isAdded
     },
     getProjectDetails:async(projectId, userId)=> {
         debugger

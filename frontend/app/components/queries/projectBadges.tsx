@@ -6,12 +6,14 @@ import Badge from '../utility/Badge'
 import DropDown from '../utility/DropDown'
 import { PlusCircleIcon } from '@heroicons/react/20/solid'
 import genericState from '@/app/states/genericState'
+import CreateProject from '../projects/createProject'
+import Tooltip from '../utility/Tooltip'
 
 const ProjectBadges = () => {
 
 const {projects,AddRemoveQueryFromProject,getProjectDetails} = projectState()
 const {queries} = queriesState()
-const {userId,setDisplayMode,displayMode} = genericState()
+const {userId,setDisplayMode,displayMode,showAlert} = genericState()
 const [projectInQueries,setProjectsInQueries] = useState<Project[]>([])
 
 useEffect(()=>{
@@ -21,9 +23,12 @@ useEffect(()=>{
     setProjectsInQueries(queryProjects)
 },[queries[0],JSON.stringify(projects),displayMode])
 
-const handleQueryAddAndRemove = async(projectId:string)=>{
-    if(userId){
-        await AddRemoveQueryFromProject(userId,queries[0],projectId)
+const [projectAddDialogOpen,setProjAddDialog]=useState(false)
+
+const handleQueryAddAndRemove = async(project:Project)=>{
+    if(userId && project._id){
+        let isAdded = await AddRemoveQueryFromProject(userId,queries[0],project._id)
+        isAdded ? showAlert(`Query added to the project '${project.name}'`) : showAlert(`Query removed from the project '${project.name}'`)
     }
 }
 
@@ -45,12 +50,13 @@ const handleProjectBadgeClick = (projectId:string)=>{
             projectInQuery.name ? <span key={projectInQuery._id} onClick={()=>{projectInQuery._id ? handleProjectBadgeClick(projectInQuery._id) : ''}} className='cursor-pointer'><Badge badgeText={projectInQuery.name} /></span> : ''
         ))}
 
+        <CreateProject dialogOpen={projectAddDialogOpen} setDialogOpen={setProjAddDialog}/>
 
         <DropDown
-        dropDownArray={projects.map((project)=>({name:project.name,
+        dropDownArray={[{name:"CREATE NEW PROJECT",clickEvent:()=>{setProjAddDialog(true)},strong:true},...projects.map((project)=>({name:project.name,
             ticked:project.queries?.some(projectQuery=>projectQuery.queryId==queries[0]?._id),
-            clickEvent:()=>{project._id ? handleQueryAddAndRemove(project._id) : ''}}))}                            
-        btnHtml={<PlusCircleIcon className='h-4 w-4 cursor-pointer -mb-1 ml-2' ></PlusCircleIcon>}
+            clickEvent:()=>{project? handleQueryAddAndRemove(project) : console.log("No Project Id")}}))]}                            
+        btnHtml={<Tooltip text='Add this query to your project'><PlusCircleIcon className='h-4 w-4 cursor-pointer -mb-1 ml-2' ></PlusCircleIcon></Tooltip>}
         heading='Add to project'
         />
 

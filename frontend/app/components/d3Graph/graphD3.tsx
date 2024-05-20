@@ -7,7 +7,7 @@ const GraphD3 = ({width,height}:{width?:number,height?:number}) => {
   const d3Container = useRef(null);
   const tooltipDiv = useRef(null)
   const graphInstance = useRef<D3LitGraph | null>(null); // Corrected type
-  const {nodesAndLinks,highlightAndScrollToPaper,revertHightLight} = queriesState()
+  const {nodesAndLinks,highlightPaper,revertHightLight,scrollToPaper} = queriesState()
 
   // const dynamicWidth = (window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth)*0.65;
   // const dynamicHeight = (window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight)*0.95;
@@ -33,7 +33,8 @@ const GraphD3 = ({width,height}:{width?:number,height?:number}) => {
       graphInstance.current = new D3LitGraph(d3Container,nodesAndLinks.nodes || [],nodesAndLinks.links || [],
         "Year","Citation Count",
         tooltipDiv,
-        highlightAndScrollToPaper,revertHightLight,
+        highlightPaper,revertHightLight,scrollToPaper,
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         width=width,height=height)
       
     }else{

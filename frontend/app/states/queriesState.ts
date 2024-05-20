@@ -9,7 +9,7 @@ interface QueriesState {
     queries:Array<Queries>
     sortType:SortType
     sortedPapers:Paper[],
-    nodesAndLinks:{nodes:{id:string,x?:number,y?:number,actualYear?:string}[],links:{source:string,target:string,type:string}[]}
+    nodesAndLinks:{nodes:{id:string,title:string,x?:number,y?:number,actualYear?:string}[],links:{source:string,target:string,type:string}[]}
 
     setSortType:(sortField:'Year',sortType:'asc'|'desc'|'relevance')=>void
     setSortedPapers:(paper:Paper[])=>void
@@ -23,7 +23,8 @@ interface QueriesState {
     isDetailView: (status:boolean)=>void
     setDetailPagePaper : (paper:Paper)=>void
 
-    highlightAndScrollToPaper : (paperId:string)=>void
+    scrollToPaper:(paperId:string)=>void
+    highlightPaper : (paperId:string)=>void
     revertHightLight:(paperId:string)=>void
 }
 
@@ -34,21 +35,23 @@ const queriesState = create<QueriesState>()((set) => ({
     sortType:{sortField:'Year',sortOrder:'relevance'},
     sortedPapers:[],
     nodesAndLinks:{nodes:[],links:[]},
-    highlightAndScrollToPaper: (paperId) =>set((state)=>{
-        const SortedPapers = state.sortedPapers
-        const updatedSortedPapers = SortedPapers.map((paper)=>(paper.paperId==paperId ? {...paper,isHovered:true} : paper))
-        //--scroll code--//
+    scrollToPaper:(paperId)=>{
         const element = document.getElementById(paperId);
 
         if (element) {
             const elementPosition = element.getBoundingClientRect().top + window.scrollY;
-            const offsetPosition = elementPosition - 130; //offset for header
+            const offsetPosition = elementPosition - 170; //offset for header
         
             window.scrollTo({
               top: offsetPosition,
               behavior: 'smooth'
             });
           }
+    },
+    highlightPaper: (paperId) =>set((state)=>{
+        const SortedPapers = state.sortedPapers
+        const updatedSortedPapers = SortedPapers.map((paper)=>(paper.paperId==paperId ? {...paper,isHovered:true} : paper))
+
         return {sortedPapers:updatedSortedPapers}
     }) ,
     revertHightLight:(paperId)=>set((state)=>{
@@ -93,14 +96,14 @@ const queriesState = create<QueriesState>()((set) => ({
             return minYear;
         }, 0);
 
-        let nodes:{id:string,x:number,y:number,actualYear?:string}[] = Object.values(papersMap).map((paper:any)=>{
+        let nodes:{id:string,title:string,x:number,y:number,actualYear?:string}[] = Object.values(papersMap).map((paper:any)=>{
             let year=minYear
             if(paper.publicationDate){
                 const date = new Date(paper.publicationDate);
                 year = date.getFullYear(); // year is a number
-                return {id:paper.paperId,y:paper.citationCount,x:year} 
+                return {id:paper.paperId,title:paper.title,y:paper.citationCount,x:year} 
             }
-            return {id:paper.paperId,y:paper.citationCount,x:year,tooltipXValue:'No Data'}
+            return {id:paper.paperId,title:paper.title,y:paper.citationCount,x:year,tooltipXValue:'No Data'}
         })
         let nodesAndLinks = {nodes:nodes,links:links}
         return {sortedPapers:sortedPapers,nodesAndLinks:nodesAndLinks}
@@ -147,18 +150,22 @@ const queriesState = create<QueriesState>()((set) => ({
         let {data}:any = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}api/paper/event`,eventRequest)
         let relevantPapers = data?.relevantPapers?.map((paper:any)=>({...paper,journalName:paper.journal?.name}))
         if(relevantPapers){
-            // const map = new Map<string, Paper>();
             const papersSet = new Set<string>();
             queries[0].papers.forEach((item:any) => papersSet.add(item.paperId));
-            // queries[0].papers.forEach((item:any) => map.set(item.paperId, item));
-    
-            let mergedPapers: Paper[]=[]
+
+            let newPapers: Paper[]=[]
             relevantPapers.forEach((item:any) => {
             if (!papersSet.has(item.paperId)) {
-                mergedPapers.push(item)
+                newPapers.push(item)
             }
             });
-            mergedPapers=mergedPapers.concat(queries[0].papers)
+
+            let mergedPapers = [
+                ...queries[0].papers.splice(0,arrayIndex+1),
+                ...newPapers,
+                ...queries[0].papers.splice(arrayIndex+1)
+            ]
+
             queries[0].papers=mergedPapers
             console.log(queries)
             set(()=>({queries:[...queries]}))

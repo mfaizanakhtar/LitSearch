@@ -16,14 +16,16 @@ projects , users = engine["projects"] , engine["users"]
 async def addProject(request:Project):
     is_exists = await projects.find_one({"name":request.name,"team":{"$elemMatch":{"userId":request.userId}}})
     if(is_exists is None):
+        project_id = ObjectId()
         await projects.insert_one({
+            "_id":project_id,
             "name":request.name,
             "desc":request.desc,
             "team":[{"userId":request.userId,"role":"owner"}],
             "papers":[],
             "queries":[]})
         
-        return {"detail":"Created successfully"}
+        return {"detail":"Created successfully","projectId":str(project_id)}
     
     raise HTTPException(status_code=500, detail="Project name not available")
 
@@ -270,7 +272,8 @@ async def getProjectDetails(projectId:str,userId:str):
                                 "citationCount": "$paperDetails.citationCount",
                                 "journalName": "$paperDetails.journalName",
                                 "title": "$paperDetails.title",
-                                "publicationDate":"$paperDetails.publicationDate"
+                                "publicationDate":"$paperDetails.publicationDate",
+                                "query":"$paperDetails.query"
                             }
                         ]
                     }
